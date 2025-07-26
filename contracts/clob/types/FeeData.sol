@@ -22,18 +22,25 @@ library PackedFeeRatesLib {
 
     uint256 private constant U16_PER_WORD = 16;
 
-    function packFeeRates(uint16[] memory fees) internal pure returns (PackedFeeRates) {
+    function packFeeRates(
+        uint16[] memory fees
+    ) internal pure returns (PackedFeeRates) {
         if (fees.length > U16_PER_WORD) revert FeeTiersExceedsMax();
 
         uint256 packedValue = 0;
         for (uint256 i; i < fees.length; i++) {
-            packedValue = packedValue | (uint256(fees[i]) << (i * U16_PER_WORD));
+            packedValue =
+                packedValue |
+                (uint256(fees[i]) << (i * U16_PER_WORD));
         }
 
         return PackedFeeRates.wrap(packedValue);
     }
 
-    function getFeeAt(PackedFeeRates fees, uint256 index) internal pure returns (uint16) {
+    function getFeeAt(
+        PackedFeeRates fees,
+        uint256 index
+    ) internal pure returns (uint16) {
         if (index >= 15) revert FeeTierIndexOutOfBounds();
 
         uint256 shiftBits = index * U16_PER_WORD;
@@ -59,7 +66,8 @@ using FeeDataLib for FeeData global;
 /// @custom:storage-location erc7201:FeeDataStorage
 library FeeDataStorageLib {
     bytes32 constant FEE_DATA_STORAGE_POSITION =
-        keccak256(abi.encode(uint256(keccak256("FeeDataStorage")) - 1)) & ~bytes32(uint256(0xff));
+        keccak256(abi.encode(uint256(keccak256("FeeDataStorage")) - 1)) &
+            ~bytes32(uint256(0xff));
 
     /// @dev Gets the storage slot of the FeeData struct
     // slither-disable-next-line uninitialized-storage
@@ -79,52 +87,81 @@ library FeeDataLib {
     using SafeTransferLib for address;
 
     /// @dev sig: 0x2227733fc4c8a9034cb58087dcf6995128b9c0233b038b03366aaf30c92b92d6
-    event FeesClaimed(uint256 indexed eventNonce, address indexed token, uint256 fee);
+    event FeesClaimed(
+        uint256 indexed eventNonce,
+        address indexed token,
+        uint256 fee
+    );
     /// @dev sig: 0xfaa858b3dfeba08d811f5f70b037ea5cb20192ab57f696df5a74a281ef22751b
-    event AccountFeeTierUpdated(uint256 indexed eventNonce, address indexed account, FeeTiers newTier);
+    event AccountFeeTierUpdated(
+        uint256 indexed eventNonce,
+        address indexed account,
+        FeeTiers newTier
+    );
 
-    event FeesAccrued(uint256 indexed eventNonce, address indexed token, uint256 amount);
+    event FeesAccrued(
+        uint256 indexed eventNonce,
+        address indexed token,
+        uint256 amount
+    );
 
     uint256 constant FEE_SCALING = 10_000_000;
 
     /// @dev Returns the taker fee for a given amount and account
-    function getTakerFee(FeeData storage self, PackedFeeRates takerRates, address account, uint256 amount)
-        internal
-        view
-        returns (uint256)
-    {
+    function getTakerFee(
+        FeeData storage self,
+        PackedFeeRates takerRates,
+        address account,
+        uint256 amount
+    ) internal view returns (uint256) {
         if (amount == 0) return 0;
 
-        uint16 feeRate = takerRates.getFeeAt(uint256(self.accountFeeTier[account]));
+        uint16 feeRate = takerRates.getFeeAt(
+            uint256(self.accountFeeTier[account])
+        );
         return amount.fullMulDiv(feeRate, FEE_SCALING);
     }
 
     /// @dev Returns the maker fee for a given amount and account
-    function getMakerFee(FeeData storage self, PackedFeeRates makerRates, address account, uint256 amount)
-        internal
-        view
-        returns (uint256)
-    {
+    function getMakerFee(
+        FeeData storage self,
+        PackedFeeRates makerRates,
+        address account,
+        uint256 amount
+    ) internal view returns (uint256) {
         if (amount == 0) return 0;
 
-        uint16 feeRate = makerRates.getFeeAt(uint256(self.accountFeeTier[account]));
+        uint16 feeRate = makerRates.getFeeAt(
+            uint256(self.accountFeeTier[account])
+        );
         return amount.fullMulDiv(feeRate, FEE_SCALING);
     }
 
     /// @dev Returns the fee tier for a given account
-    function getAccountFeeTier(FeeData storage self, address account) internal view returns (FeeTiers tier) {
+    function getAccountFeeTier(
+        FeeData storage self,
+        address account
+    ) internal view returns (FeeTiers tier) {
         return self.accountFeeTier[account];
     }
 
     /// @dev Sets the fee tier for a given account
-    function setAccountFeeTier(FeeData storage self, address account, FeeTiers feeTier) internal {
+    function setAccountFeeTier(
+        FeeData storage self,
+        address account,
+        FeeTiers feeTier
+    ) internal {
         self.accountFeeTier[account] = feeTier;
 
         emit AccountFeeTierUpdated(FeeDataEventNonce.inc(), account, feeTier);
     }
 
     /// @dev Accrues fees for a given token
-    function accrueFee(FeeData storage self, address token, uint256 amount) internal {
+    function accrueFee(
+        FeeData storage self,
+        address token,
+        uint256 amount
+    ) internal {
         self.totalFees[token] += amount;
         self.unclaimedFees[token] += amount;
 
@@ -132,10 +169,15 @@ library FeeDataLib {
     }
 
     /// @dev Claims fees for a given token
-    function claimFees(FeeData storage self, address token) internal returns (uint256 fees) {
+    function claimFees(
+        FeeData storage self,
+        address token
+    ) internal returns (uint256 fees) {
         fees = self.unclaimedFees[token];
         delete self.unclaimedFees[token];
 
         emit FeesClaimed(FeeDataEventNonce.inc(), token, fees);
     }
 }
+
+// @audit

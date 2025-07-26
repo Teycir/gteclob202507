@@ -37,14 +37,21 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev sig: 0xc0208cc462e0f7d7b2329363da41c40e123ba2c9db4b8b03a183140d67ad1c60
-    event CancelFailed(uint256 indexed eventNonce, uint256 orderId, address owner);
+    event CancelFailed(
+        uint256 indexed eventNonce,
+        uint256 orderId,
+        address owner
+    );
     /// @dev sig: 0x000db81a45376092a12f01bd951541c58dadfbee19b3abc4697dc2cc5e9b23d1
     event MaxLimitOrdersPerTxUpdated(uint8 newMaxLimits, uint256 nonce);
     /// @dev sig: 0xdf07ebd269c613b8a3f2d3a9b3763bfed22597dc93ca6f40caf8773ebabf7d50
     event TickSizeUpdated(uint256 newTickSize, uint256 nonce);
     /// @dev sig: 0xc4a46c9948e01e547abd16e75dc8fe9188e51223adaa63628987231721f1a175
     event LimitOrderSubmitted(
-        uint256 indexed eventNonce, address indexed owner, uint256 orderId, PostLimitOrderArgs args
+        uint256 indexed eventNonce,
+        address indexed owner,
+        uint256 orderId,
+        PostLimitOrderArgs args
     );
 
     /// @dev sig: 0xa29c2a8452ff5e5b8761380398807d8bdf90000d5d47150885ca12872c3a633a
@@ -61,7 +68,10 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
 
     /// @dev sig: 0xfe554b360bf5fbcb8c25503e7d4856f541a95cdc06c7bd09db796a8b8a1c63c1
     event FillOrderSubmitted(
-        uint256 indexed eventNonce, address indexed owner, uint256 orderId, PostFillOrderArgs args
+        uint256 indexed eventNonce,
+        address indexed owner,
+        uint256 orderId,
+        PostFillOrderArgs args
     );
 
     /// @dev sig: 0x1788bdd4ba6258b91406af719d1791cfc448cfeaf6850c9e016d79e61201f897
@@ -87,7 +97,11 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
 
     /// @dev sig: 0xa93c2d52ea42b9ef4e405dd5e4447e9a3f7e50261f11e571e43bc7452556860c
     event OrderAmended(
-        uint256 indexed eventNonce, Order preAmend, AmendArgs args, int256 quoteTokenDelta, int256 baseTokenDelta
+        uint256 indexed eventNonce,
+        Order preAmend,
+        AmendArgs args,
+        int256 quoteTokenDelta,
+        int256 baseTokenDelta
     );
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -143,7 +157,12 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     modifier onlySenderOrOperator(address account, OperatorRoles requiredRole) {
-        OperatorHelperLib.onlySenderOrOperator(operator, gteRouter, account, requiredRole);
+        OperatorHelperLib.onlySenderOrOperator(
+            operator,
+            gteRouter,
+            account,
+            requiredRole
+        );
         _;
     }
 
@@ -157,7 +176,12 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address _factory, address _gteRouter, address _accountManager, uint256 _maxNumLimitsPerSide) {
+    constructor(
+        address _factory,
+        address _gteRouter,
+        address _accountManager,
+        uint256 _maxNumLimitsPerSide
+    ) {
         factory = ICLOBManager(_factory);
         gteRouter = _gteRouter;
         operator = IOperator(_accountManager);
@@ -167,10 +191,11 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     }
 
     /// @notice Initializes the `marketConfig`, `marketSettings`, and `initialOwner` of the market
-    function initialize(MarketConfig memory marketConfig, MarketSettings memory marketSettings, address initialOwner)
-        external
-        initializer
-    {
+    function initialize(
+        MarketConfig memory marketConfig,
+        MarketSettings memory marketSettings,
+        address initialOwner
+    ) external initializer {
         __CLOB_init(marketConfig, marketSettings, initialOwner);
     }
 
@@ -190,13 +215,19 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
 
     /// @notice Gets the base token amount equivalent to `quoteAmount` at a given `price`
     /// @dev This price does not have to be within tick size
-    function getBaseTokenAmount(uint256 price, uint256 quoteAmount) external view returns (uint256) {
+    function getBaseTokenAmount(
+        uint256 price,
+        uint256 quoteAmount
+    ) external view returns (uint256) {
         return _getStorage().getBaseTokenAmount(price, quoteAmount);
     }
 
     /// @notice Gets the quote token amount equivalent to `baseAmount` at a given `price`
     /// @dev This price dos not have to be within tick size
-    function getQuoteTokenAmount(uint256 price, uint256 baseAmount) external view returns (uint256) {
+    function getQuoteTokenAmount(
+        uint256 price,
+        uint256 baseAmount
+    ) external view returns (uint256) {
         return _getStorage().getQuoteTokenAmount(price, baseAmount);
     }
 
@@ -221,8 +252,15 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     }
 
     /// @notice Gets quote and base open interest
-    function getOpenInterest() external view returns (uint256 quoteOi, uint256 baseOi) {
-        return (_getStorage().metadata().quoteTokenOpenInterest, _getStorage().metadata().baseTokenOpenInterest);
+    function getOpenInterest()
+        external
+        view
+        returns (uint256 quoteOi, uint256 baseOi)
+    {
+        return (
+            _getStorage().metadata().quoteTokenOpenInterest,
+            _getStorage().metadata().baseTokenOpenInterest
+        );
     }
 
     /// @notice Gets an order in the book from its id
@@ -232,11 +270,17 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
 
     /// @notice Gets top of book as price (max bid and min ask)
     function getTOB() external view returns (uint256 maxBid, uint256 minAsk) {
-        return (_getStorage().getBestBidPrice(), _getStorage().getBestAskPrice());
+        return (
+            _getStorage().getBestBidPrice(),
+            _getStorage().getBestAskPrice()
+        );
     }
 
     /// @notice Gets the bid or ask Limit at a price depending on `side`
-    function getLimit(uint256 price, Side side) external view returns (Limit memory) {
+    function getLimit(
+        uint256 price,
+        Side side
+    ) external view returns (Limit memory) {
         return _getStorage().getLimit(price, side);
     }
 
@@ -251,24 +295,37 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     }
 
     /// @notice Gets a list of orders, starting at an orderId
-    function getNextOrders(uint256 startOrderId, uint256 numOrders) external view returns (Order[] memory) {
+    function getNextOrders(
+        uint256 startOrderId,
+        uint256 numOrders
+    ) external view returns (Order[] memory) {
         return _getStorage().getNextOrders(startOrderId.toOrderId(), numOrders);
     }
 
     /// @notice Gets the next populated higher price limit to `price` on a side of the book
-    function getNextBiggestPrice(uint256 price, Side side) external view returns (uint256) {
+    function getNextBiggestPrice(
+        uint256 price,
+        Side side
+    ) external view returns (uint256) {
         return _getStorage().getNextBiggestPrice(price, side);
     }
 
     /// @notice Gets the next populated lower price limit to `price` on a side of the book
-    function getNextSmallestPrice(uint256 price, Side side) external view returns (uint256) {
+    function getNextSmallestPrice(
+        uint256 price,
+        Side side
+    ) external view returns (uint256) {
         return _getStorage().getNextSmallestPrice(price, side);
     }
 
     /// @notice Gets the next order id (nonce) that will be used upon placing an order
     /// @dev Placing both limit and fill orders increment the next orderId
     function getNextOrderId() external view returns (uint256) {
-        return OrderIdLib.getOrderId(address(0), _getStorage().metadata().orderIdCounter + 1);
+        return
+            OrderIdLib.getOrderId(
+                address(0),
+                _getStorage().metadata().orderIdCounter + 1
+            );
     }
 
     /// @notice Gets the current event nonce
@@ -277,11 +334,11 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     }
 
     /// @notice Gets `pageSize` of orders from TOB down from a `startPrice` and on a given `side` of the book
-    function getOrdersPaginated(uint256 startPrice, Side side, uint256 pageSize)
-        external
-        view
-        returns (Order[] memory result, Order memory nextOrder)
-    {
+    function getOrdersPaginated(
+        uint256 startPrice,
+        Side side,
+        uint256 pageSize
+    ) external view returns (Order[] memory result, Order memory nextOrder) {
         Book storage ds = _getStorage();
 
         nextOrder = side == Side.BUY
@@ -292,11 +349,10 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     }
 
     /// @notice Gets `pageSize` of orders from TOB down, starting at `startOrderId`
-    function getOrdersPaginated(OrderId startOrderId, uint256 pageSize)
-        external
-        view
-        returns (Order[] memory result, Order memory nextOrder)
-    {
+    function getOrdersPaginated(
+        OrderId startOrderId,
+        uint256 pageSize
+    ) external view returns (Order[] memory result, Order memory nextOrder) {
         Book storage ds = _getStorage();
         nextOrder = ds.orders[startOrderId];
 
@@ -320,8 +376,12 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
 
     /// @notice Sets the minimum amount an order (in base) must be to be placed on the book
     /// @dev Reducing an order below this amount will cause the order to get cancelled
-    function setMinLimitOrderAmountInBase(uint256 newMinLimitOrderAmountInBase) external onlyManager {
-        _getStorage().setMinLimitOrderAmountInBase(newMinLimitOrderAmountInBase);
+    function setMinLimitOrderAmountInBase(
+        uint256 newMinLimitOrderAmountInBase
+    ) external onlyManager {
+        _getStorage().setMinLimitOrderAmountInBase(
+            newMinLimitOrderAmountInBase
+        );
     }
 
     /// @notice Sets the lot size in base for standardized trade sizes
@@ -336,7 +396,10 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
 
     /// @notice Posts a fill (taker) order for an `account`
     /// @dev Fill orders don't enforce lot size restrictions as they consume existing liquidity
-    function postFillOrder(address account, PostFillOrderArgs calldata args)
+    function postFillOrder(
+        address account,
+        PostFillOrderArgs calldata args
+    )
         external
         onlySenderOrOperator(account, OperatorRoles.CLOB_FILL)
         returns (PostFillOrderResult memory)
@@ -348,12 +411,16 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
 
         emit FillOrderSubmitted(CLOBEventNonce.inc(), account, orderId, args);
 
-        if (args.side == Side.BUY) return _processFillBidOrder(ds, account, newOrder, args);
+        if (args.side == Side.BUY)
+            return _processFillBidOrder(ds, account, newOrder, args);
         else return _processFillAskOrder(ds, account, newOrder, args);
     }
 
     /// @notice Posts a limit order for `account`
-    function postLimitOrder(address account, PostLimitOrderArgs calldata args)
+    function postLimitOrder(
+        address account,
+        PostLimitOrderArgs calldata args
+    )
         external
         onlySenderOrOperator(account, OperatorRoles.CLOB_LIMIT)
         returns (PostLimitOrderResult memory)
@@ -382,12 +449,16 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
 
         emit LimitOrderSubmitted(CLOBEventNonce.inc(), account, orderId, args);
 
-        if (args.side == Side.BUY) return _processLimitBidOrder(ds, account, newOrder, args);
+        if (args.side == Side.BUY)
+            return _processLimitBidOrder(ds, account, newOrder, args);
         else return _processLimitAskOrder(ds, account, newOrder, args);
     }
 
     /// @notice Amends an existing order for `account`
-    function amend(address account, AmendArgs calldata args)
+    function amend(
+        address account,
+        AmendArgs calldata args
+    )
         external
         onlySenderOrOperator(account, OperatorRoles.CLOB_LIMIT)
         returns (int256 quoteDelta, int256 baseDelta)
@@ -397,7 +468,8 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
 
         if (order.id.unwrap() == 0) revert OrderLib.OrderNotFound();
         if (order.owner != account) revert AmendUnauthorized();
-        if (args.limitOrderType != LimitOrderType.POST_ONLY) revert AmendNonPostOnlyInvalid();
+        if (args.limitOrderType != LimitOrderType.POST_ONLY)
+            revert AmendNonPostOnlyInvalid();
 
         ds.assertLimitPriceInBounds(args.price);
         ds.assertLotSizeCompliant(args.amountInBase);
@@ -407,18 +479,37 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     }
 
     /// @notice Cancels a list of orders for `account`
-    function cancel(address account, CancelArgs memory args)
+    function cancel(
+        address account,
+        CancelArgs memory args
+    )
         external
         onlySenderOrOperator(account, OperatorRoles.CLOB_LIMIT)
         returns (uint256, uint256)
     {
         Book storage ds = _getStorage();
-        (address quoteToken, address baseToken) = (ds.config().quoteToken, ds.config().baseToken);
+        (address quoteToken, address baseToken) = (
+            ds.config().quoteToken,
+            ds.config().baseToken
+        );
 
-        (uint256 totalQuoteTokenRefunded, uint256 totalBaseTokenRefunded) = _executeCancel(ds, account, args);
+        (
+            uint256 totalQuoteTokenRefunded,
+            uint256 totalBaseTokenRefunded
+        ) = _executeCancel(ds, account, args);
 
-        if (totalBaseTokenRefunded > 0) accountManager.creditAccount(account, baseToken, totalBaseTokenRefunded);
-        if (totalQuoteTokenRefunded > 0) accountManager.creditAccount(account, quoteToken, totalQuoteTokenRefunded);
+        if (totalBaseTokenRefunded > 0)
+            accountManager.creditAccount(
+                account,
+                baseToken,
+                totalBaseTokenRefunded
+            );
+        if (totalQuoteTokenRefunded > 0)
+            accountManager.creditAccount(
+                account,
+                quoteToken,
+                totalQuoteTokenRefunded
+            );
 
         return (totalQuoteTokenRefunded, totalBaseTokenRefunded);
     }
@@ -434,13 +525,27 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
         Order memory newOrder,
         PostFillOrderArgs memory args
     ) private returns (PostFillOrderResult memory) {
-        (uint256 totalQuoteSent, uint256 totalBaseReceived) = _matchIncomingBid(ds, newOrder, args.amountIsBase);
+        (uint256 totalQuoteSent, uint256 totalBaseReceived) = _matchIncomingBid(
+            ds,
+            newOrder,
+            args.amountIsBase
+        );
 
-        if (totalQuoteSent == 0 || totalBaseReceived == 0) revert ZeroCostTrade();
-        if (args.fillOrderType == FillOrderType.FILL_OR_KILL && newOrder.amount > 0) revert FOKOrderNotFilled();
+        if (totalQuoteSent == 0 || totalBaseReceived == 0)
+            revert ZeroCostTrade();
+        if (
+            args.fillOrderType == FillOrderType.FILL_OR_KILL &&
+            newOrder.amount > 0
+        ) revert FOKOrderNotFilled();
 
         // slither-disable-next-line reentrancy-events This external call is to the factory
-        uint256 takerFee = _settleIncomingOrder(ds, account, Side.BUY, totalQuoteSent, totalBaseReceived);
+        uint256 takerFee = _settleIncomingOrder(
+            ds,
+            account,
+            Side.BUY,
+            totalQuoteSent,
+            totalBaseReceived
+        );
 
         emit FillOrderProcessed(
             CLOBEventNonce.inc(),
@@ -451,9 +556,14 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
             takerFee
         );
 
-        return PostFillOrderResult(
-            account, newOrder.id.unwrap(), -totalQuoteSent.toInt256(), totalBaseReceived.toInt256(), takerFee
-        );
+        return
+            PostFillOrderResult(
+                account,
+                newOrder.id.unwrap(),
+                -totalQuoteSent.toInt256(),
+                totalBaseReceived.toInt256(),
+                takerFee
+            );
     }
 
     /// @dev Performs matching and settlement for an ask fill order
@@ -463,13 +573,26 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
         Order memory newOrder,
         PostFillOrderArgs memory args
     ) private returns (PostFillOrderResult memory) {
-        (uint256 quoteReceived, uint256 baseSent) = _matchIncomingAsk(ds, newOrder, args.amountIsBase);
+        (uint256 quoteReceived, uint256 baseSent) = _matchIncomingAsk(
+            ds,
+            newOrder,
+            args.amountIsBase
+        );
 
         if (quoteReceived == 0 || baseSent == 0) revert ZeroCostTrade();
-        if (args.fillOrderType == FillOrderType.FILL_OR_KILL && newOrder.amount > 0) revert FOKOrderNotFilled();
+        if (
+            args.fillOrderType == FillOrderType.FILL_OR_KILL &&
+            newOrder.amount > 0
+        ) revert FOKOrderNotFilled();
 
         // slither-disable-next-line reentrancy-events This external call is to the factory
-        uint256 takerFee = _settleIncomingOrder(ds, account, Side.SELL, quoteReceived, baseSent);
+        uint256 takerFee = _settleIncomingOrder(
+            ds,
+            account,
+            Side.SELL,
+            quoteReceived,
+            baseSent
+        );
 
         emit FillOrderProcessed(
             CLOBEventNonce.inc(),
@@ -481,7 +604,13 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
         );
 
         return
-            PostFillOrderResult(account, newOrder.id.unwrap(), quoteReceived.toInt256(), -baseSent.toInt256(), takerFee);
+            PostFillOrderResult(
+                account,
+                newOrder.id.unwrap(),
+                quoteReceived.toInt256(),
+                -baseSent.toInt256(),
+                takerFee
+            );
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -495,19 +624,31 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
         Order memory newOrder,
         PostLimitOrderArgs memory args
     ) internal returns (PostLimitOrderResult memory) {
-        (uint256 postAmount, uint256 quoteTokenAmountSent, uint256 baseTokenAmountReceived) =
-            _executeBidLimitOrder(ds, newOrder, args.limitOrderType);
+        (
+            uint256 postAmount,
+            uint256 quoteTokenAmountSent,
+            uint256 baseTokenAmountReceived
+        ) = _executeBidLimitOrder(ds, newOrder, args.limitOrderType);
 
-        if (postAmount + quoteTokenAmountSent + baseTokenAmountReceived == 0) revert ZeroOrder();
+        if (postAmount + quoteTokenAmountSent + baseTokenAmountReceived == 0)
+            revert ZeroOrder();
 
-        if (baseTokenAmountReceived != quoteTokenAmountSent && baseTokenAmountReceived & quoteTokenAmountSent == 0) {
+        if (
+            baseTokenAmountReceived != quoteTokenAmountSent &&
+            baseTokenAmountReceived & quoteTokenAmountSent == 0
+        ) {
             revert ZeroCostTrade();
         }
 
         uint256 eventNonce = CLOBEventNonce.inc(); // keep stack from blowing
 
-        uint256 takerFee =
-            _settleIncomingOrder(ds, account, Side.BUY, quoteTokenAmountSent + postAmount, baseTokenAmountReceived);
+        uint256 takerFee = _settleIncomingOrder(
+            ds,
+            account,
+            Side.BUY,
+            quoteTokenAmountSent + postAmount,
+            baseTokenAmountReceived
+        );
 
         emit LimitOrderProcessed(
             eventNonce,
@@ -519,14 +660,15 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
             takerFee
         );
 
-        return PostLimitOrderResult(
-            account,
-            newOrder.id.unwrap(),
-            newOrder.amount,
-            -quoteTokenAmountSent.toInt256(),
-            baseTokenAmountReceived.toInt256(),
-            takerFee
-        );
+        return
+            PostLimitOrderResult(
+                account,
+                newOrder.id.unwrap(),
+                newOrder.amount,
+                -quoteTokenAmountSent.toInt256(),
+                baseTokenAmountReceived.toInt256(),
+                takerFee
+            );
     }
 
     /// @dev Places an ask limit order onto the book, matching and settling any fill if possible
@@ -536,19 +678,31 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
         Order memory newOrder,
         PostLimitOrderArgs memory args
     ) internal returns (PostLimitOrderResult memory) {
-        (uint256 postAmount, uint256 quoteTokenAmountReceived, uint256 baseTokenAmountSent) =
-            _executeAskLimitOrder(ds, newOrder, args.limitOrderType);
+        (
+            uint256 postAmount,
+            uint256 quoteTokenAmountReceived,
+            uint256 baseTokenAmountSent
+        ) = _executeAskLimitOrder(ds, newOrder, args.limitOrderType);
 
-        if (postAmount + quoteTokenAmountReceived + baseTokenAmountSent == 0) revert ZeroOrder();
+        if (postAmount + quoteTokenAmountReceived + baseTokenAmountSent == 0)
+            revert ZeroOrder();
 
-        if (baseTokenAmountSent != quoteTokenAmountReceived && baseTokenAmountSent & quoteTokenAmountReceived == 0) {
+        if (
+            baseTokenAmountSent != quoteTokenAmountReceived &&
+            baseTokenAmountSent & quoteTokenAmountReceived == 0
+        ) {
             revert ZeroCostTrade();
         }
 
         uint256 eventNonce = CLOBEventNonce.inc(); // Keep stack from blowing
 
-        uint256 takerFee =
-            _settleIncomingOrder(ds, account, Side.SELL, quoteTokenAmountReceived, baseTokenAmountSent + postAmount);
+        uint256 takerFee = _settleIncomingOrder(
+            ds,
+            account,
+            Side.SELL,
+            quoteTokenAmountReceived,
+            baseTokenAmountSent + postAmount
+        );
 
         emit LimitOrderProcessed(
             eventNonce,
@@ -560,27 +714,43 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
             takerFee
         );
 
-        return PostLimitOrderResult(
-            account,
-            newOrder.id.unwrap(),
-            newOrder.amount,
-            quoteTokenAmountReceived.toInt256(),
-            -baseTokenAmountSent.toInt256(),
-            takerFee
-        );
+        return
+            PostLimitOrderResult(
+                account,
+                newOrder.id.unwrap(),
+                newOrder.amount,
+                quoteTokenAmountReceived.toInt256(),
+                -baseTokenAmountSent.toInt256(),
+                takerFee
+            );
     }
 
     /// @dev Performs the core matching and placement of a bid limit order into the book
-    function _executeBidLimitOrder(Book storage ds, Order memory newOrder, LimitOrderType limitOrderType)
+    function _executeBidLimitOrder(
+        Book storage ds,
+        Order memory newOrder,
+        LimitOrderType limitOrderType
+    )
         internal
-        returns (uint256 postAmount, uint256 quoteTokenAmountSent, uint256 baseTokenAmountReceived)
+        returns (
+            uint256 postAmount,
+            uint256 quoteTokenAmountSent,
+            uint256 baseTokenAmountReceived
+        )
     {
-        if (limitOrderType == LimitOrderType.POST_ONLY && ds.getBestAskPrice() <= newOrder.price) {
+        if (
+            limitOrderType == LimitOrderType.POST_ONLY &&
+            ds.getBestAskPrice() <= newOrder.price
+        ) {
             revert PostOnlyOrderWouldFill();
         }
 
         // Attempt to fill any of the incoming limit order that's overlapping into asks
-        (uint256 totalQuoteSent, uint256 totalBaseReceived) = _matchIncomingBid(ds, newOrder, true);
+        (uint256 totalQuoteSent, uint256 totalBaseReceived) = _matchIncomingBid(
+            ds,
+            newOrder,
+            true
+        );
 
         // NOOP, there is no more size left after filling to create a limit order
         if (newOrder.amount < ds.settings().minLimitOrderAmountInBase) {
@@ -591,9 +761,13 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
         // The book is full, pop the least competitive order (or revert if incoming is the least competitive)
         if (ds.bidTree.size() == maxNumLimitsPerSide) {
             uint256 minBidPrice = ds.getWorstBidPrice();
-            if (newOrder.price <= minBidPrice) revert MaxOrdersInBookPostNotCompetitive();
+            if (newOrder.price <= minBidPrice)
+                revert MaxOrdersInBookPostNotCompetitive();
 
-            _removeNonCompetitiveOrder(ds, ds.orders[ds.bidLimits[minBidPrice].tailOrder]);
+            _removeNonCompetitiveOrder(
+                ds,
+                ds.orders[ds.bidLimits[minBidPrice].tailOrder]
+            );
         }
 
         // After filling, the order still has sufficient size and can be placed as a limit
@@ -604,16 +778,31 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     }
 
     /// @dev Performs the core matching and placement of an ask limit order into the book
-    function _executeAskLimitOrder(Book storage ds, Order memory newOrder, LimitOrderType limitOrderType)
+    function _executeAskLimitOrder(
+        Book storage ds,
+        Order memory newOrder,
+        LimitOrderType limitOrderType
+    )
         internal
-        returns (uint256 postAmount, uint256 quoteTokenAmountReceived, uint256 baseTokenAmountSent)
+        returns (
+            uint256 postAmount,
+            uint256 quoteTokenAmountReceived,
+            uint256 baseTokenAmountSent
+        )
     {
-        if (limitOrderType == LimitOrderType.POST_ONLY && ds.getBestBidPrice() >= newOrder.price) {
+        if (
+            limitOrderType == LimitOrderType.POST_ONLY &&
+            ds.getBestBidPrice() >= newOrder.price
+        ) {
             revert PostOnlyOrderWouldFill();
         }
 
         // Attempt to fill any of the incoming limit order that's overlapping into bids
-        (quoteTokenAmountReceived, baseTokenAmountSent) = _matchIncomingAsk(ds, newOrder, true);
+        (quoteTokenAmountReceived, baseTokenAmountSent) = _matchIncomingAsk(
+            ds,
+            newOrder,
+            true
+        );
 
         // NOOP, there is no more size left after filling to create a limit order
         if (newOrder.amount < ds.settings().minLimitOrderAmountInBase) {
@@ -624,9 +813,13 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
         // The book is full, pop the least competitive order (or revert if incoming is the least competitive)
         if (ds.askTree.size() == maxNumLimitsPerSide) {
             uint256 maxAskPrice = ds.getWorstAskPrice();
-            if (newOrder.price >= maxAskPrice) revert MaxOrdersInBookPostNotCompetitive();
+            if (newOrder.price >= maxAskPrice)
+                revert MaxOrdersInBookPostNotCompetitive();
 
-            _removeNonCompetitiveOrder(ds, ds.orders[ds.askLimits[maxAskPrice].tailOrder]);
+            _removeNonCompetitiveOrder(
+                ds,
+                ds.orders[ds.askLimits[maxAskPrice].tailOrder]
+            );
         }
 
         // After filling, the order still has sufficient size and can be placed as a limit
@@ -641,14 +834,18 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev Performs the amending of an order
-    function _processAmend(Book storage ds, Order storage order, AmendArgs calldata args)
-        internal
-        returns (int256 quoteTokenDelta, int256 baseTokenDelta)
-    {
+    function _processAmend(
+        Book storage ds,
+        Order storage order,
+        AmendArgs calldata args
+    ) internal returns (int256 quoteTokenDelta, int256 baseTokenDelta) {
         Order memory preAmend = order;
         address maker = preAmend.owner;
 
-        if (args.cancelTimestamp.isExpired() || args.amountInBase < ds.settings().minLimitOrderAmountInBase) {
+        if (
+            args.cancelTimestamp.isExpired() ||
+            args.amountInBase < ds.settings().minLimitOrderAmountInBase
+        ) {
             revert AmendInvalid();
         }
 
@@ -657,24 +854,39 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
 
         if (order.side != args.side || order.price != args.price) {
             // change place in book
-            (quoteTokenDelta, baseTokenDelta) = _executeAmendNewOrder(ds, order, args);
+            (quoteTokenDelta, baseTokenDelta) = _executeAmendNewOrder(
+                ds,
+                order,
+                args
+            );
         } else {
             // change amount
-            (quoteTokenDelta, baseTokenDelta) = _executeAmendAmount(ds, order, args.amountInBase);
+            (quoteTokenDelta, baseTokenDelta) = _executeAmendAmount(
+                ds,
+                order,
+                args.amountInBase
+            );
 
             if (quoteTokenDelta + baseTokenDelta == 0) revert ZeroOrder();
         }
 
-        emit OrderAmended(CLOBEventNonce.inc(), preAmend, args, quoteTokenDelta, baseTokenDelta);
+        emit OrderAmended(
+            CLOBEventNonce.inc(),
+            preAmend,
+            args,
+            quoteTokenDelta,
+            baseTokenDelta
+        );
 
         _settleAmend(ds, maker, quoteTokenDelta, baseTokenDelta);
     }
 
     /// @dev Performs the removal and replacement of an amended order with a new price or side
-    function _executeAmendNewOrder(Book storage ds, Order storage order, AmendArgs calldata args)
-        internal
-        returns (int256 quoteTokenDelta, int256 baseTokenDelta)
-    {
+    function _executeAmendNewOrder(
+        Book storage ds,
+        Order storage order,
+        AmendArgs calldata args
+    ) internal returns (int256 quoteTokenDelta, int256 baseTokenDelta) {
         Order memory newOrder;
 
         newOrder.owner = order.owner;
@@ -684,41 +896,60 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
         newOrder.amount = args.amountInBase;
         newOrder.cancelTimestamp = uint32(args.cancelTimestamp);
 
-        if (order.side == Side.BUY) quoteTokenDelta = ds.getQuoteTokenAmount(order.price, order.amount).toInt256();
+        if (order.side == Side.BUY)
+            quoteTokenDelta = ds
+                .getQuoteTokenAmount(order.price, order.amount)
+                .toInt256();
         else baseTokenDelta = order.amount.toInt256();
 
         ds.removeOrderFromBook(order);
 
         uint256 postAmount;
         if (args.side == Side.BUY) {
-            (postAmount,,) = _executeBidLimitOrder(ds, newOrder, args.limitOrderType);
+            (postAmount, , ) = _executeBidLimitOrder(
+                ds,
+                newOrder,
+                args.limitOrderType
+            );
 
             quoteTokenDelta -= postAmount.toInt256();
         } else {
-            (postAmount,,) = _executeAskLimitOrder(ds, newOrder, args.limitOrderType);
+            (postAmount, , ) = _executeAskLimitOrder(
+                ds,
+                newOrder,
+                args.limitOrderType
+            );
 
             baseTokenDelta -= postAmount.toInt256();
         }
     }
 
     /// @dev Performs the updating of an amended order with a new amount
-    function _executeAmendAmount(Book storage ds, Order storage order, uint256 amount)
-        internal
-        returns (int256 quoteTokenDelta, int256 baseTokenDelta)
-    {
+    function _executeAmendAmount(
+        Book storage ds,
+        Order storage order,
+        uint256 amount
+    ) internal returns (int256 quoteTokenDelta, int256 baseTokenDelta) {
         if (order.side == Side.BUY) {
-            int256 oldAmountInQuote = ds.getQuoteTokenAmount(order.price, order.amount).toInt256();
-            int256 newAmountInQuote = ds.getQuoteTokenAmount(order.price, amount).toInt256();
+            int256 oldAmountInQuote = ds
+                .getQuoteTokenAmount(order.price, order.amount)
+                .toInt256();
+            int256 newAmountInQuote = ds
+                .getQuoteTokenAmount(order.price, amount)
+                .toInt256();
 
             quoteTokenDelta = oldAmountInQuote - newAmountInQuote;
 
-            ds.metadata().quoteTokenOpenInterest =
-                uint256(ds.metadata().quoteTokenOpenInterest.toInt256() - quoteTokenDelta);
+            ds.metadata().quoteTokenOpenInterest = uint256(
+                ds.metadata().quoteTokenOpenInterest.toInt256() -
+                    quoteTokenDelta
+            );
         } else {
             baseTokenDelta = order.amount.toInt256() - amount.toInt256();
 
-            ds.metadata().baseTokenOpenInterest =
-                uint256(ds.metadata().baseTokenOpenInterest.toInt256() - baseTokenDelta);
+            ds.metadata().baseTokenOpenInterest = uint256(
+                ds.metadata().baseTokenOpenInterest.toInt256() - baseTokenDelta
+            );
         }
 
         order.amount = amount;
@@ -736,13 +967,16 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     }
 
     /// @dev Match incoming bid order to best asks
-    function _matchIncomingBid(Book storage ds, Order memory incomingOrder, bool amountIsBase)
-        internal
-        returns (uint256 totalQuoteSent, uint256 totalBaseReceived)
-    {
+    function _matchIncomingBid(
+        Book storage ds,
+        Order memory incomingOrder,
+        bool amountIsBase
+    ) internal returns (uint256 totalQuoteSent, uint256 totalBaseReceived) {
         uint256 bestAskPrice = ds.getBestAskPrice();
 
-        while (bestAskPrice <= incomingOrder.price && incomingOrder.amount > 0) {
+        while (
+            bestAskPrice <= incomingOrder.price && incomingOrder.amount > 0
+        ) {
             Limit storage limit = ds.askLimits[bestAskPrice];
             Order storage bestAskOrder = ds.orders[limit.headOrder];
 
@@ -753,8 +987,13 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
             }
 
             // slither-disable-next-line uninitialized-local
-            __MatchData__ memory currMatch =
-                _matchIncomingOrder(ds, bestAskOrder, incomingOrder, bestAskPrice, amountIsBase);
+            __MatchData__ memory currMatch = _matchIncomingOrder(
+                ds,
+                bestAskOrder,
+                incomingOrder,
+                bestAskPrice,
+                amountIsBase
+            );
 
             // Break if no tradeable amount can be filled due to lot size constraints.
             // This prevents infinite loops when dust amounts cannot fill a single lot.
@@ -770,13 +1009,19 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     }
 
     /// @dev Match incoming ask order to best bids
-    function _matchIncomingAsk(Book storage ds, Order memory incomingOrder, bool amountIsBase)
+    function _matchIncomingAsk(
+        Book storage ds,
+        Order memory incomingOrder,
+        bool amountIsBase
+    )
         internal
         returns (uint256 totalQuoteTokenReceived, uint256 totalBaseTokenSent)
     {
         uint256 bestBidPrice = ds.getBestBidPrice();
 
-        while (bestBidPrice >= incomingOrder.price && incomingOrder.amount > 0) {
+        while (
+            bestBidPrice >= incomingOrder.price && incomingOrder.amount > 0
+        ) {
             Limit storage limit = ds.bidLimits[bestBidPrice];
             Order storage bestBidOrder = ds.orders[limit.headOrder];
 
@@ -787,8 +1032,13 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
             }
 
             // slither-disable-next-line uninitialized-local
-            __MatchData__ memory currMatch =
-                _matchIncomingOrder(ds, bestBidOrder, incomingOrder, bestBidPrice, amountIsBase);
+            __MatchData__ memory currMatch = _matchIncomingOrder(
+                ds,
+                bestBidOrder,
+                incomingOrder,
+                bestBidPrice,
+                amountIsBase
+            );
 
             // Break if no tradeable amount can be filled due to lot size constraints.
             // This prevents infinite loops when dust amounts cannot fill a single lot.
@@ -816,15 +1066,28 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
 
         if (amountIsBase) {
             // denominated in base
-            matchData.baseDelta = (matchedBase.min(takerOrder.amount) / lotSize) * lotSize;
-            matchData.quoteDelta = ds.getQuoteTokenAmount(matchedPrice, matchData.baseDelta);
+            matchData.baseDelta =
+                (matchedBase.min(takerOrder.amount) / lotSize) *
+                lotSize;
+            matchData.quoteDelta = ds.getQuoteTokenAmount(
+                matchedPrice,
+                matchData.baseDelta
+            );
             matchData.matchedAmount = matchData.baseDelta;
         } else {
             // denominated in quote
             matchData.baseDelta =
-                (matchedBase.min(ds.getBaseTokenAmount(matchedPrice, takerOrder.amount)) / lotSize) * lotSize;
-            matchData.quoteDelta = ds.getQuoteTokenAmount(matchedPrice, matchData.baseDelta);
-            matchData.matchedAmount = matchData.baseDelta != matchedBase ? takerOrder.amount : matchData.quoteDelta;
+                (matchedBase.min(
+                    ds.getBaseTokenAmount(matchedPrice, takerOrder.amount)
+                ) / lotSize) *
+                lotSize;
+            matchData.quoteDelta = ds.getQuoteTokenAmount(
+                matchedPrice,
+                matchData.baseDelta
+            );
+            matchData.matchedAmount = matchData.baseDelta != matchedBase
+                ? takerOrder.amount
+                : matchData.quoteDelta;
         }
 
         // Early return if no tradeable amount due to lot size constraints (dust)
@@ -834,13 +1097,21 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
 
         // Handle token accounting for maker.
         if (takerOrder.side == Side.BUY) {
-            TransientMakerData.addQuoteToken(makerOrder.owner, matchData.quoteDelta);
+            TransientMakerData.addQuoteToken(
+                makerOrder.owner,
+                matchData.quoteDelta
+            );
 
-            if (!orderRemoved) ds.metadata().baseTokenOpenInterest -= matchData.baseDelta;
+            if (!orderRemoved)
+                ds.metadata().baseTokenOpenInterest -= matchData.baseDelta;
         } else {
-            TransientMakerData.addBaseToken(makerOrder.owner, matchData.baseDelta);
+            TransientMakerData.addBaseToken(
+                makerOrder.owner,
+                matchData.baseDelta
+            );
 
-            if (!orderRemoved) ds.metadata().quoteTokenOpenInterest -= matchData.quoteDelta;
+            if (!orderRemoved)
+                ds.metadata().quoteTokenOpenInterest -= matchData.quoteDelta;
         }
 
         if (orderRemoved) ds.removeOrderFromBook(makerOrder);
@@ -863,7 +1134,10 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
 
     /// @dev Removes an expired bid, adding the order's amount to settlement as a quote refund
     function _removeExpiredBid(Book storage ds, Order storage order) internal {
-        uint256 quoteTokenAmount = ds.getQuoteTokenAmount(order.price, order.amount);
+        uint256 quoteTokenAmount = ds.getQuoteTokenAmount(
+            order.price,
+            order.amount
+        );
 
         // We can add the refund to maker fills because both cancelled bids and filled asks are credited in quoteTokens
         TransientMakerData.addQuoteToken(order.owner, quoteTokenAmount);
@@ -872,15 +1146,26 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     }
 
     /// @notice Removes the least competitive order from the book
-    function _removeNonCompetitiveOrder(Book storage ds, Order storage order) internal {
+    function _removeNonCompetitiveOrder(
+        Book storage ds,
+        Order storage order
+    ) internal {
         uint256 quoteRefunded;
         uint256 baseRefunded;
         if (order.side == Side.BUY) {
             quoteRefunded = ds.getQuoteTokenAmount(order.price, order.amount);
-            accountManager.creditAccountNoEvent(order.owner, address(ds.config().quoteToken), quoteRefunded);
+            accountManager.creditAccountNoEvent(
+                order.owner,
+                address(ds.config().quoteToken),
+                quoteRefunded
+            );
         } else {
             baseRefunded = order.amount;
-            accountManager.creditAccountNoEvent(order.owner, address(ds.config().baseToken), baseRefunded);
+            accountManager.creditAccountNoEvent(
+                order.owner,
+                address(ds.config().baseToken),
+                baseRefunded
+            );
         }
 
         emit OrderCanceled(
@@ -900,9 +1185,16 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev Performs the cancellation of an account's orders
-    function _executeCancel(Book storage ds, address account, CancelArgs memory args)
+    function _executeCancel(
+        Book storage ds,
+        address account,
+        CancelArgs memory args
+    )
         internal
-        returns (uint256 totalQuoteTokenRefunded, uint256 totalBaseTokenRefunded)
+        returns (
+            uint256 totalQuoteTokenRefunded,
+            uint256 totalBaseTokenRefunded
+        )
     {
         uint256 numOrders = args.orderIds.length;
         for (uint256 i = 0; i < numOrders; i++) {
@@ -920,7 +1212,10 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
             uint256 baseTokenRefunded = 0;
 
             if (order.side == Side.BUY) {
-                quoteTokenRefunded = ds.getQuoteTokenAmount(order.price, order.amount);
+                quoteTokenRefunded = ds.getQuoteTokenAmount(
+                    order.price,
+                    order.amount
+                );
                 totalQuoteTokenRefunded += quoteTokenRefunded;
             } else {
                 baseTokenRefunded = order.amount;
@@ -930,7 +1225,14 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
             ds.removeOrderFromBook(order);
 
             uint256 eventNonce = CLOBEventNonce.inc();
-            emit OrderCanceled(eventNonce, orderId, account, quoteTokenRefunded, baseTokenRefunded, CancelType.USER);
+            emit OrderCanceled(
+                eventNonce,
+                orderId,
+                account,
+                quoteTokenRefunded,
+                baseTokenRefunded,
+                CancelType.USER
+            );
         }
     }
 
@@ -948,7 +1250,10 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
     ) internal returns (uint256 takerFee) {
         SettleParams memory settleParams;
 
-        (settleParams.quoteToken, settleParams.baseToken) = (ds.config().quoteToken, ds.config().baseToken);
+        (settleParams.quoteToken, settleParams.baseToken) = (
+            ds.config().quoteToken,
+            ds.config().baseToken
+        );
 
         settleParams.taker = account;
         settleParams.side = side;
@@ -956,31 +1261,55 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
         settleParams.takerQuoteAmount = quoteTokenAmount;
         settleParams.takerBaseAmount = baseTokenAmount;
 
-        settleParams.makerCredits = TransientMakerData.getMakerCreditsAndClearStorage();
+        settleParams.makerCredits = TransientMakerData
+            .getMakerCreditsAndClearStorage();
 
         return accountManager.settleIncomingOrder(settleParams);
     }
 
     /// @dev Settles the token deltas in the factory from an amend
-    function _settleAmend(Book storage ds, address maker, int256 quoteTokenDelta, int256 baseTokenDelta) internal {
+    function _settleAmend(
+        Book storage ds,
+        address maker,
+        int256 quoteTokenDelta,
+        int256 baseTokenDelta
+    ) internal {
         if (quoteTokenDelta > 0) {
-            accountManager.creditAccount(maker, address(ds.config().quoteToken), uint256(quoteTokenDelta));
+            accountManager.creditAccount(
+                maker,
+                address(ds.config().quoteToken),
+                uint256(quoteTokenDelta)
+            );
         } else if (quoteTokenDelta < 0) {
-            accountManager.debitAccount(maker, address(ds.config().quoteToken), uint256(-quoteTokenDelta));
+            accountManager.debitAccount(
+                maker,
+                address(ds.config().quoteToken),
+                uint256(-quoteTokenDelta)
+            );
         }
 
         if (baseTokenDelta > 0) {
-            accountManager.creditAccount(maker, address(ds.config().baseToken), uint256(baseTokenDelta));
+            accountManager.creditAccount(
+                maker,
+                address(ds.config().baseToken),
+                uint256(baseTokenDelta)
+            );
         } else if (baseTokenDelta < 0) {
-            accountManager.debitAccount(maker, address(ds.config().baseToken), uint256(-baseTokenDelta));
+            accountManager.debitAccount(
+                maker,
+                address(ds.config().baseToken),
+                uint256(-baseTokenDelta)
+            );
         }
     }
 
     // This naming reflects OZ initializer naming
     // slither-disable-next-line naming-convention
-    function __CLOB_init(MarketConfig memory marketConfig, MarketSettings memory marketSettings, address initialOwner)
-        internal
-    {
+    function __CLOB_init(
+        MarketConfig memory marketConfig,
+        MarketSettings memory marketSettings,
+        address initialOwner
+    ) internal {
         __Ownable_init(initialOwner);
         CLOBStorageLib.init(_getStorage(), marketConfig, marketSettings);
     }
@@ -990,3 +1319,5 @@ contract CLOB is ICLOB, Ownable2StepUpgradeable {
         return CLOBStorageLib._getCLOBStorage();
     }
 }
+
+// @audit

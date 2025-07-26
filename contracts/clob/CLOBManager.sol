@@ -33,11 +33,16 @@ using CLOBManagerStorageLib for CLOBManagerStorage global;
 /// @custom:storage-location erc7201:CLOBManagerStorage
 library CLOBManagerStorageLib {
     bytes32 constant CLOB_MANAGER_STORAGE_POSITION =
-        keccak256(abi.encode(uint256(keccak256("CLOBManagerStorage")) - 1)) & ~bytes32(uint256(0xff));
+        keccak256(abi.encode(uint256(keccak256("CLOBManagerStorage")) - 1)) &
+            ~bytes32(uint256(0xff));
 
     /// @dev Gets the storage slot of the storage struct for the contract calling this library function
     // slither-disable-next-line uninitialized-storage
-    function getCLOBManagerStorage() internal pure returns (CLOBManagerStorage storage self) {
+    function getCLOBManagerStorage()
+        internal
+        pure
+        returns (CLOBManagerStorage storage self)
+    {
         bytes32 position = CLOB_MANAGER_STORAGE_POSITION;
 
         // slither-disable-next-line assembly
@@ -139,7 +144,10 @@ contract CLOBManager is ICLOBManager, CLOBAdminOwnableRoles, Initializable {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @notice Gets the market address for a given `tokenA` and `tokenB`
-    function getMarketAddress(address tokenA, address tokenB) external view returns (address marketAddress) {
+    function getMarketAddress(
+        address tokenA,
+        address tokenB
+    ) external view returns (address marketAddress) {
         return _getStorage().clob[_getTokenHash(tokenA, tokenB)];
     }
 
@@ -163,7 +171,11 @@ contract CLOBManager is ICLOBManager, CLOBAdminOwnableRoles, Initializable {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @notice Creates a new market for `quoteToken` and `baseToken` using beacon proxy
-    function createMarket(address baseToken, address quoteToken, SettingsParams calldata settings)
+    function createMarket(
+        address baseToken,
+        address quoteToken,
+        SettingsParams calldata settings
+    )
         external
         virtual
         onlyOwnerOrRoles(CLOBRoles.MARKET_CREATOR)
@@ -216,16 +228,23 @@ contract CLOBManager is ICLOBManager, CLOBAdminOwnableRoles, Initializable {
         // Register the market in AccountManager
         accountManager.registerMarket(marketAddress);
 
-        _emitMarketCreated(msg.sender, marketAddress, quoteDecimals, baseDecimals, config, settings);
+        _emitMarketCreated(
+            msg.sender,
+            marketAddress,
+            quoteDecimals,
+            baseDecimals,
+            config,
+            settings
+        );
     }
 
     /// @notice Sets the max limits per tx for a list of clobs
-    function setMaxLimitsPerTx(ICLOB[] calldata clobs, uint8[] calldata maxLimits)
-        external
-        virtual
-        onlyOwnerOrRoles(CLOBRoles.MAX_LIMITS_PER_TX_SETTER)
-    {
-        if (clobs.length != maxLimits.length) revert AdminPanelArrayLengthsInvalid();
+    function setMaxLimitsPerTx(
+        ICLOB[] calldata clobs,
+        uint8[] calldata maxLimits
+    ) external virtual onlyOwnerOrRoles(CLOBRoles.MAX_LIMITS_PER_TX_SETTER) {
+        if (clobs.length != maxLimits.length)
+            revert AdminPanelArrayLengthsInvalid();
 
         for (uint256 i = 0; i < clobs.length; i++) {
             clobs[i].setMaxLimitsPerTx(maxLimits[i]);
@@ -233,12 +252,12 @@ contract CLOBManager is ICLOBManager, CLOBAdminOwnableRoles, Initializable {
     }
 
     /// @notice Sets the tick sizes for a list of clobs
-    function setTickSizes(ICLOB[] calldata clobs, uint256[] calldata tickSizes)
-        external
-        virtual
-        onlyOwnerOrRoles(CLOBRoles.TICK_SIZE_SETTER)
-    {
-        if (clobs.length != tickSizes.length) revert AdminPanelArrayLengthsInvalid();
+    function setTickSizes(
+        ICLOB[] calldata clobs,
+        uint256[] calldata tickSizes
+    ) external virtual onlyOwnerOrRoles(CLOBRoles.TICK_SIZE_SETTER) {
+        if (clobs.length != tickSizes.length)
+            revert AdminPanelArrayLengthsInvalid();
 
         for (uint256 i = 0; i < clobs.length; i++) {
             clobs[i].setTickSize(tickSizes[i]);
@@ -246,12 +265,16 @@ contract CLOBManager is ICLOBManager, CLOBAdminOwnableRoles, Initializable {
     }
 
     /// @notice Sets the min limit order amounts for a list of clobs
-    function setMinLimitOrderAmounts(ICLOB[] calldata clobs, uint256[] calldata minLimitOrderAmounts)
+    function setMinLimitOrderAmounts(
+        ICLOB[] calldata clobs,
+        uint256[] calldata minLimitOrderAmounts
+    )
         external
         virtual
         onlyOwnerOrRoles(CLOBRoles.MIN_LIMIT_ORDER_AMOUNT_SETTER)
     {
-        if (clobs.length != minLimitOrderAmounts.length) revert AdminPanelArrayLengthsInvalid();
+        if (clobs.length != minLimitOrderAmounts.length)
+            revert AdminPanelArrayLengthsInvalid();
 
         for (uint256 i = 0; i < clobs.length; i++) {
             clobs[i].setMinLimitOrderAmountInBase(minLimitOrderAmounts[i]);
@@ -259,21 +282,20 @@ contract CLOBManager is ICLOBManager, CLOBAdminOwnableRoles, Initializable {
     }
 
     /// @notice Sets fee tiers for accounts
-    function setAccountFeeTiers(address[] calldata accounts, FeeTiers[] calldata feeTiers)
-        external
-        virtual
-        onlyOwnerOrRoles(CLOBRoles.FEE_TIER_SETTER)
-    {
+    function setAccountFeeTiers(
+        address[] calldata accounts,
+        FeeTiers[] calldata feeTiers
+    ) external virtual onlyOwnerOrRoles(CLOBRoles.FEE_TIER_SETTER) {
         accountManager.setSpotAccountFeeTiers(accounts, feeTiers);
     }
 
     /// @notice Sets max limit exemptions for accounts
-    function setMaxLimitsExempt(address[] calldata accounts, bool[] calldata toggles)
-        external
-        virtual
-        onlyOwnerOrRoles(CLOBRoles.MAX_LIMITS_EXEMPT_SETTER)
-    {
-        if (accounts.length != toggles.length) revert AdminPanelArrayLengthsInvalid();
+    function setMaxLimitsExempt(
+        address[] calldata accounts,
+        bool[] calldata toggles
+    ) external virtual onlyOwnerOrRoles(CLOBRoles.MAX_LIMITS_EXEMPT_SETTER) {
+        if (accounts.length != toggles.length)
+            revert AdminPanelArrayLengthsInvalid();
 
         CLOBManagerStorage storage self = _getStorage();
         for (uint256 i = 0; i < accounts.length; i++) {
@@ -286,16 +308,29 @@ contract CLOBManager is ICLOBManager, CLOBAdminOwnableRoles, Initializable {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @dev Checks config and settings params are within correct bounds
-    function _assertValidSettings(SettingsParams calldata settings, uint256 baseSize) internal pure {
-        if (settings.tickSize.fullMulDiv(settings.minLimitOrderAmountInBase, baseSize) == 0) revert InvalidSettings();
-        if (settings.minLimitOrderAmountInBase < MIN_MIN_LIMIT_ORDER_AMOUNT_BASE) revert InvalidSettings();
+    function _assertValidSettings(
+        SettingsParams calldata settings,
+        uint256 baseSize
+    ) internal pure {
+        if (
+            settings.tickSize.fullMulDiv(
+                settings.minLimitOrderAmountInBase,
+                baseSize
+            ) == 0
+        ) revert InvalidSettings();
+        if (
+            settings.minLimitOrderAmountInBase < MIN_MIN_LIMIT_ORDER_AMOUNT_BASE
+        ) revert InvalidSettings();
         if (settings.maxLimitsPerTx == 0) revert InvalidSettings();
         if (settings.tickSize == 0) revert InvalidSettings();
         if (settings.lotSizeInBase == 0) revert InvalidSettings();
     }
 
     /// @dev Performs sanity checks on the addresses passed to make it slightly more difficult to deploy a broken market
-    function _assertValidTokenPair(address quoteToken, address baseToken) internal pure {
+    function _assertValidTokenPair(
+        address quoteToken,
+        address baseToken
+    ) internal pure {
         if (quoteToken == baseToken) revert InvalidPair();
         if (quoteToken == address(0)) revert InvalidTokenAddress();
         if (baseToken == address(0)) revert InvalidTokenAddress();
@@ -328,14 +363,25 @@ contract CLOBManager is ICLOBManager, CLOBAdminOwnableRoles, Initializable {
     }
 
     /// @dev Gets the token hash which can be used as a UID for a market
-    function _getTokenHash(address tokenA, address tokenB) internal pure returns (bytes32) {
-        (tokenA, tokenB) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+    function _getTokenHash(
+        address tokenA,
+        address tokenB
+    ) internal pure returns (bytes32) {
+        (tokenA, tokenB) = tokenA < tokenB
+            ? (tokenA, tokenB)
+            : (tokenB, tokenA);
 
         return keccak256(abi.encodePacked(tokenA, tokenB));
     }
 
     /// @dev Helper to set the storage slot of the storage struct for this contract
-    function _getStorage() internal pure returns (CLOBManagerStorage storage ds) {
+    function _getStorage()
+        internal
+        pure
+        returns (CLOBManagerStorage storage ds)
+    {
         return CLOBManagerStorageLib.getCLOBManagerStorage();
     }
 }
+
+// @audit

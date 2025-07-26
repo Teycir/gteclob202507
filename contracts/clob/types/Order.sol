@@ -8,7 +8,10 @@ type OrderId is uint256;
 using OrderIdLib for OrderId global;
 
 library OrderIdLib {
-    function getOrderId(address account, uint96 id) internal pure returns (uint256) {
+    function getOrderId(
+        address account,
+        uint96 id
+    ) internal pure returns (uint256) {
         return uint256(bytes32(abi.encodePacked(account, id)));
     }
 
@@ -57,11 +60,11 @@ library OrderLib {
     error OrderNotFound();
 
     /// @dev Converts a PostLimitOrderArgs to an Order
-    function toOrder(ICLOB.PostLimitOrderArgs calldata args, uint256 orderId, address owner)
-        internal
-        pure
-        returns (Order memory order)
-    {
+    function toOrder(
+        ICLOB.PostLimitOrderArgs calldata args,
+        uint256 orderId,
+        address owner
+    ) internal pure returns (Order memory order) {
         order.side = args.side;
         order.cancelTimestamp = uint32(args.cancelTimestamp);
         order.id = orderId.toOrderId();
@@ -71,11 +74,11 @@ library OrderLib {
     }
 
     /// @dev Converts a PostFillOrderArgs to an Order
-    function toOrder(ICLOB.PostFillOrderArgs calldata args, uint256 orderId, address owner)
-        internal
-        pure
-        returns (Order memory order)
-    {
+    function toOrder(
+        ICLOB.PostFillOrderArgs calldata args,
+        uint256 orderId,
+        address owner
+    ) internal pure returns (Order memory order) {
         order.side = args.side;
         order.id = orderId.toOrderId();
         order.owner = owner;
@@ -86,13 +89,17 @@ library OrderLib {
     /// @dev Checks whether an order is expired from an Order struct
     function isExpired(Order memory self) internal view returns (bool) {
         // slither-disable-next-line timestamp
-        return self.cancelTimestamp != NULL_TIMESTAMP && self.cancelTimestamp < block.timestamp;
+        return
+            self.cancelTimestamp != NULL_TIMESTAMP &&
+            self.cancelTimestamp < block.timestamp;
     }
 
     /// @dev Checks whether an order is expired from a timestamp
     function isExpired(uint256 cancelTimestamp) internal view returns (bool) {
         // slither-disable-next-line timestamp
-        return cancelTimestamp != NULL_TIMESTAMP && cancelTimestamp < block.timestamp;
+        return
+            cancelTimestamp != NULL_TIMESTAMP &&
+            cancelTimestamp < block.timestamp;
     }
 
     /// @dev Checks whether an order is null
@@ -105,3 +112,5 @@ library OrderLib {
         if (self.isNull()) revert OrderNotFound();
     }
 }
+
+// @audit

@@ -14,7 +14,6 @@ import {Operator, OperatorRoles} from "../utils/Operator.sol";
 import {FeeData, FeeDataLib, FeeDataStorageLib, PackedFeeRates, PackedFeeRatesLib, FeeTiers} from "../clob/types/FeeData.sol";
 import {Roles} from "../clob/types/Roles.sol";
 
-
 struct AccountManagerStorage {
     mapping(address market => bool) isMarket;
     mapping(address account => mapping(address asset => uint256)) accountTokenBalances;
@@ -24,7 +23,12 @@ struct AccountManagerStorage {
  * @title AccountManager
  * @notice Handles account balances, deposits, withdrawals, for GTE spot as well as inheriting Operator
  */
-contract AccountManager is IAccountManager, Operator, Initializable, OwnableRoles {
+contract AccountManager is
+    IAccountManager,
+    Operator,
+    Initializable,
+    OwnableRoles
+{
     using SafeTransferLib for address;
     using FixedPointMathLib for uint256;
     using PackedFeeRatesLib for PackedFeeRates;
@@ -36,10 +40,19 @@ contract AccountManager is IAccountManager, Operator, Initializable, OwnableRole
     /// @dev sig: 0x07796b317344e6f18fa32ed89b6074ad66549cee7fb7b8c3e9f1c42c496f1c5c
     event MarketRegistered(uint256 indexed eventNonce, address indexed market);
     /// @dev sig: 0x1ae35cf838a52070167575d4dedf6631cc160136bee10eeca1575d2e3cc8a075
-    event AccountDebited(uint256 indexed eventNonce, address indexed account, address indexed token, uint256 amount);
+    event AccountDebited(
+        uint256 indexed eventNonce,
+        address indexed account,
+        address indexed token,
+        uint256 amount
+    );
     /// @dev sig: 0x074f9f8975d437bea257b7e6abcfb4b45312683f7f8f120dde3faae76f783b58
-    event AccountCredited(uint256 indexed eventNonce, address indexed account, address indexed token, uint256 amount);
-
+    event AccountCredited(
+        uint256 indexed eventNonce,
+        address indexed account,
+        address indexed token,
+        uint256 amount
+    );
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                           ERRORS                           */
@@ -75,7 +88,8 @@ contract AccountManager is IAccountManager, Operator, Initializable, OwnableRole
 
     /// @dev Ensures msg.sender is a registered market
     modifier onlyMarket() {
-        if (!_getAccountStorage().isMarket[msg.sender]) revert MarketUnauthorized();
+        if (!_getAccountStorage().isMarket[msg.sender])
+            revert MarketUnauthorized();
         _;
     }
 
@@ -93,7 +107,12 @@ contract AccountManager is IAccountManager, Operator, Initializable, OwnableRole
 
     /// @dev Ensures that if an account is not the msg.sender, both that account and the owner have approved msg.sender
     modifier onlySenderOrOperator(address account, OperatorRoles requiredRole) {
-        OperatorHelperLib.onlySenderOrOperator(_getOperatorStorage(), gteRouter, account, requiredRole);
+        OperatorHelperLib.onlySenderOrOperator(
+            _getOperatorStorage(),
+            gteRouter,
+            account,
+            requiredRole
+        );
         _;
     }
 
@@ -124,7 +143,10 @@ contract AccountManager is IAccountManager, Operator, Initializable, OwnableRole
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @notice Gets an `account`'s balance of `token`
-    function getAccountBalance(address account, address token) external view returns (uint256) {
+    function getAccountBalance(
+        address account,
+        address token
+    ) external view returns (uint256) {
         return _getAccountStorage().accountTokenBalances[account][token];
     }
 
@@ -149,12 +171,16 @@ contract AccountManager is IAccountManager, Operator, Initializable, OwnableRole
     }
 
     /// @notice Gets the spot taker fee rate for a given fee tier
-    function getSpotTakerFeeRateForTier(FeeTiers tier) external view returns (uint256) {
+    function getSpotTakerFeeRateForTier(
+        FeeTiers tier
+    ) external view returns (uint256) {
         return spotTakerFeeRates.getFeeAt(uint256(tier));
     }
 
     /// @notice Gets the spot maker fee rate for a given fee tier
-    function getSpotMakerFeeRateForTier(FeeTiers tier) external view returns (uint256) {
+    function getSpotMakerFeeRateForTier(
+        FeeTiers tier
+    ) external view returns (uint256) {
         return spotMakerFeeRates.getFeeAt(uint256(tier));
     }
 
@@ -163,25 +189,49 @@ contract AccountManager is IAccountManager, Operator, Initializable, OwnableRole
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @notice Deposits via transfer from the account
-    function deposit(address account, address token, uint256 amount) external virtual onlySenderOrOperator(account, OperatorRoles.SPOT_DEPOSIT) {
+    function deposit(
+        address account,
+        address token,
+        uint256 amount
+    )
+        external
+        virtual
+        onlySenderOrOperator(account, OperatorRoles.SPOT_DEPOSIT)
+    {
         _creditAccount(_getAccountStorage(), account, token, amount);
         token.safeTransferFrom(account, address(this), amount);
     }
 
     /// @notice Deposits via transfer from the router
-    function depositFromRouter(address account, address token, uint256 amount) external onlyGTERouter {
+    function depositFromRouter(
+        address account,
+        address token,
+        uint256 amount
+    ) external onlyGTERouter {
         _creditAccount(_getAccountStorage(), account, token, amount);
         token.safeTransferFrom(gteRouter, address(this), amount);
     }
 
     /// @notice Withdraws to account
-    function withdraw(address account, address token, uint256 amount) external virtual onlySenderOrOperator(account, OperatorRoles.SPOT_WITHDRAW) {
+    function withdraw(
+        address account,
+        address token,
+        uint256 amount
+    )
+        external
+        virtual
+        onlySenderOrOperator(account, OperatorRoles.SPOT_WITHDRAW)
+    {
         _debitAccount(_getAccountStorage(), account, token, amount);
         token.safeTransfer(account, amount);
     }
 
     /// @notice Withdraws from account to router
-    function withdrawToRouter(address account, address token, uint256 amount) external onlyGTERouter {
+    function withdrawToRouter(
+        address account,
+        address token,
+        uint256 amount
+    ) external onlyGTERouter {
         _debitAccount(_getAccountStorage(), account, token, amount);
         token.safeTransfer(gteRouter, amount);
     }
@@ -197,7 +247,15 @@ contract AccountManager is IAccountManager, Operator, Initializable, OwnableRole
     }
 
     /// @notice Collects accrued fees for a token and transfers to recipient
-    function collectFees(address token, address feeRecipient) external virtual onlyOwnerOrRoles(Roles.FEE_COLLECTOR) returns (uint256 fee) {
+    function collectFees(
+        address token,
+        address feeRecipient
+    )
+        external
+        virtual
+        onlyOwnerOrRoles(Roles.FEE_COLLECTOR)
+        returns (uint256 fee)
+    {
         FeeData storage feeData = FeeDataStorageLib.getFeeDataStorage();
         fee = feeData.claimFees(token);
 
@@ -208,13 +266,19 @@ contract AccountManager is IAccountManager, Operator, Initializable, OwnableRole
     }
 
     /// @notice Sets the spot fee tier for a single account, can only be called by CLOBManager
-    function setSpotAccountFeeTier(address account, FeeTiers feeTier) external virtual onlyCLOBManager {
+    function setSpotAccountFeeTier(
+        address account,
+        FeeTiers feeTier
+    ) external virtual onlyCLOBManager {
         FeeData storage feeData = FeeDataStorageLib.getFeeDataStorage();
         feeData.setAccountFeeTier(account, feeTier);
     }
 
     /// @notice Sets the spot fee tiers for multiple accounts, can only be called by CLOBManager
-    function setSpotAccountFeeTiers(address[] calldata accounts, FeeTiers[] calldata feeTiers) external virtual onlyCLOBManager {
+    function setSpotAccountFeeTiers(
+        address[] calldata accounts,
+        FeeTiers[] calldata feeTiers
+    ) external virtual onlyCLOBManager {
         if (accounts.length != feeTiers.length) revert UnmatchingArrayLengths();
 
         FeeData storage feeData = FeeDataStorageLib.getFeeDataStorage();
@@ -228,26 +292,56 @@ contract AccountManager is IAccountManager, Operator, Initializable, OwnableRole
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     /// @notice The hook for markets to perform account settlement after a fill, including fee calculations
-    function settleIncomingOrder(ICLOB.SettleParams calldata params) external virtual onlyMarket returns (uint256 takerFee) {
+    function settleIncomingOrder(
+        ICLOB.SettleParams calldata params
+    ) external virtual onlyMarket returns (uint256 takerFee) {
         AccountManagerStorage storage self = _getAccountStorage();
         FeeData storage feeData = FeeDataStorageLib.getFeeDataStorage();
 
         // Credit taker less fee
         address takerFeeToken;
         if (params.side == Side.BUY) {
-            takerFee = feeData.getTakerFee(spotTakerFeeRates, params.taker, params.takerBaseAmount);
+            takerFee = feeData.getTakerFee(
+                spotTakerFeeRates,
+                params.taker,
+                params.takerBaseAmount
+            );
             takerFeeToken = params.baseToken;
 
             // Taker settlement
-            _debitAccount(self, params.taker, params.quoteToken, params.takerQuoteAmount);
-            _creditAccount(self, params.taker, params.baseToken, params.takerBaseAmount - takerFee);
+            _debitAccount(
+                self,
+                params.taker,
+                params.quoteToken,
+                params.takerQuoteAmount
+            );
+            _creditAccount(
+                self,
+                params.taker,
+                params.baseToken,
+                params.takerBaseAmount - takerFee
+            );
         } else {
-            takerFee = feeData.getTakerFee(spotTakerFeeRates, params.taker, params.takerQuoteAmount);
+            takerFee = feeData.getTakerFee(
+                spotTakerFeeRates,
+                params.taker,
+                params.takerQuoteAmount
+            );
             takerFeeToken = params.quoteToken;
 
             // Taker settlement
-            _debitAccount(self, params.taker, params.baseToken, params.takerBaseAmount);
-            _creditAccount(self, params.taker, params.quoteToken, params.takerQuoteAmount - takerFee);
+            _debitAccount(
+                self,
+                params.taker,
+                params.baseToken,
+                params.takerBaseAmount
+            );
+            _creditAccount(
+                self,
+                params.taker,
+                params.quoteToken,
+                params.takerQuoteAmount - takerFee
+            );
         }
 
         // Accrue taker fee
@@ -265,22 +359,40 @@ contract AccountManager is IAccountManager, Operator, Initializable, OwnableRole
 
             // Calculate fees only for the matching side
             if (params.side == Side.BUY && credit.quoteAmount > 0) {
-                currMakerFee = feeData.getMakerFee(spotMakerFeeRates, credit.maker, credit.quoteAmount);
+                currMakerFee = feeData.getMakerFee(
+                    spotMakerFeeRates,
+                    credit.maker,
+                    credit.quoteAmount
+                );
                 credit.quoteAmount -= currMakerFee;
                 totalQuoteMakerFee += currMakerFee;
             } else if (params.side == Side.SELL && credit.baseAmount > 0) {
-                currMakerFee = feeData.getMakerFee(spotMakerFeeRates, credit.maker, credit.baseAmount);
+                currMakerFee = feeData.getMakerFee(
+                    spotMakerFeeRates,
+                    credit.maker,
+                    credit.baseAmount
+                );
                 credit.baseAmount -= currMakerFee;
                 totalBaseMakerFee += currMakerFee;
             }
 
             // Credit both base and quote amounts if any (not just fills less fee, but also expiry and non-competitive refunds)
             if (credit.baseAmount > 0) {
-                _creditAccountNoEvent(self, credit.maker, params.baseToken, credit.baseAmount);
+                _creditAccountNoEvent(
+                    self,
+                    credit.maker,
+                    params.baseToken,
+                    credit.baseAmount
+                );
             }
 
             if (credit.quoteAmount > 0) {
-                _creditAccountNoEvent(self, credit.maker, params.quoteToken, credit.quoteAmount);
+                _creditAccountNoEvent(
+                    self,
+                    credit.maker,
+                    params.quoteToken,
+                    credit.quoteAmount
+                );
             }
         }
 
@@ -294,17 +406,29 @@ contract AccountManager is IAccountManager, Operator, Initializable, OwnableRole
     }
 
     /// @notice Credits account, called by markets for amends/cancels
-    function creditAccount(address account, address token, uint256 amount) external virtual onlyMarket {
+    function creditAccount(
+        address account,
+        address token,
+        uint256 amount
+    ) external virtual onlyMarket {
         _creditAccount(_getAccountStorage(), account, token, amount);
     }
 
     /// @notice Credits account without event, called by markets for non-competitive order removal
-    function creditAccountNoEvent(address account, address token, uint256 amount) external virtual onlyMarket {
+    function creditAccountNoEvent(
+        address account,
+        address token,
+        uint256 amount
+    ) external virtual onlyMarket {
         _creditAccountNoEvent(_getAccountStorage(), account, token, amount);
     }
 
     /// @notice Debits account, called by markets for amends
-    function debitAccount(address account, address token, uint256 amount) external virtual onlyMarket {
+    function debitAccount(
+        address account,
+        address token,
+        uint256 amount
+    ) external virtual onlyMarket {
         _debitAccount(_getAccountStorage(), account, token, amount);
     }
 
@@ -312,21 +436,37 @@ contract AccountManager is IAccountManager, Operator, Initializable, OwnableRole
     /*                    INTERNAL HELPERS                        */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
-    function _creditAccount(AccountManagerStorage storage self, address account, address token, uint256 amount) internal {
+    function _creditAccount(
+        AccountManagerStorage storage self,
+        address account,
+        address token,
+        uint256 amount
+    ) internal {
         unchecked {
             self.accountTokenBalances[account][token] += amount;
         }
         emit AccountCredited(AccountEventNonce.inc(), account, token, amount);
     }
 
-    function _creditAccountNoEvent(AccountManagerStorage storage self, address account, address token, uint256 amount) internal {
+    function _creditAccountNoEvent(
+        AccountManagerStorage storage self,
+        address account,
+        address token,
+        uint256 amount
+    ) internal {
         unchecked {
             self.accountTokenBalances[account][token] += amount;
         }
     }
 
-    function _debitAccount(AccountManagerStorage storage self, address account, address token, uint256 amount) internal {
-        if (self.accountTokenBalances[account][token] < amount) revert BalanceInsufficient();
+    function _debitAccount(
+        AccountManagerStorage storage self,
+        address account,
+        address token,
+        uint256 amount
+    ) internal {
+        if (self.accountTokenBalances[account][token] < amount)
+            revert BalanceInsufficient();
 
         unchecked {
             self.accountTokenBalances[account][token] -= amount;
@@ -335,7 +475,11 @@ contract AccountManager is IAccountManager, Operator, Initializable, OwnableRole
     }
 
     /// @dev Helper to set the storage slot of the storage struct for this contract
-    function _getAccountStorage() internal pure returns (AccountManagerStorage storage ds) {
+    function _getAccountStorage()
+        internal
+        pure
+        returns (AccountManagerStorage storage ds)
+    {
         return AccountManagerStorageLib.getAccountManagerStorage();
     }
 }
@@ -345,11 +489,16 @@ using AccountManagerStorageLib for AccountManagerStorage global;
 /// @custom:storage-location erc7201:AccountManagerStorage
 library AccountManagerStorageLib {
     bytes32 constant ACCOUNT_MANAGER_STORAGE_POSITION =
-        keccak256(abi.encode(uint256(keccak256("AccountManagerStorage")) - 1)) & ~bytes32(uint256(0xff));
+        keccak256(abi.encode(uint256(keccak256("AccountManagerStorage")) - 1)) &
+            ~bytes32(uint256(0xff));
 
     /// @dev Gets the storage slot of the storage struct for the contract calling this library function
     // slither-disable-next-line uninitialized-storage
-    function getAccountManagerStorage() internal pure returns (AccountManagerStorage storage self) {
+    function getAccountManagerStorage()
+        internal
+        pure
+        returns (AccountManagerStorage storage self)
+    {
         bytes32 position = ACCOUNT_MANAGER_STORAGE_POSITION;
 
         // slither-disable-next-line assembly
@@ -358,3 +507,4 @@ library AccountManagerStorageLib {
         }
     }
 }
+// @audit

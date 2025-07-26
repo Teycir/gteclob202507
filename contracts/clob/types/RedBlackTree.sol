@@ -21,7 +21,9 @@ library BookRedBlackTreeLib {
     }
 
     /// @dev Returns the minimum value in the tree, or type(uint256).max if the tree is empty
-    function minimum(RedBlackTree storage tree) internal view returns (uint256) {
+    function minimum(
+        RedBlackTree storage tree
+    ) internal view returns (uint256) {
         bytes32 result = RedBlackTreeLib.first(tree.tree);
 
         if (result == bytes32(0)) return type(uint256).max;
@@ -30,7 +32,9 @@ library BookRedBlackTreeLib {
     }
 
     /// @dev Returns the maximum value in the tree, or type(uint256).min if the tree is empty
-    function maximum(RedBlackTree storage tree) internal view returns (uint256) {
+    function maximum(
+        RedBlackTree storage tree
+    ) internal view returns (uint256) {
         bytes32 result = RedBlackTreeLib.last(tree.tree);
 
         if (result == bytes32(0)) return type(uint256).min;
@@ -38,13 +42,19 @@ library BookRedBlackTreeLib {
         return RedBlackTreeLib.value(result);
     }
 
-    function contains(RedBlackTree storage tree, uint256 nodeKey) internal view returns (bool) {
+    function contains(
+        RedBlackTree storage tree,
+        uint256 nodeKey
+    ) internal view returns (bool) {
         return RedBlackTreeLib.exists(tree.tree, nodeKey);
     }
 
     /// @dev Returns the nearest key greater than `nodeKey`, checking if nodeKey exists.
     /// @dev If nodeKey is the maximum, returns MIN.
-    function getNextBiggest(RedBlackTree storage tree, uint256 nodeKey) internal view returns (uint256) {
+    function getNextBiggest(
+        RedBlackTree storage tree,
+        uint256 nodeKey
+    ) internal view returns (uint256) {
         if (nodeKey == tree.maximum()) return MAX;
         if (nodeKey == uint256(type(uint256).max)) revert NodeKeyInvalid();
 
@@ -54,7 +64,10 @@ library BookRedBlackTreeLib {
 
     /// @dev Returns the nearest key less than `nodeKey`, checking if nodeKey exists.
     /// @dev If nodeKey is the minimum, returns MAX.
-    function getNextSmallest(RedBlackTree storage tree, uint256 nodeKey) internal view returns (uint256) {
+    function getNextSmallest(
+        RedBlackTree storage tree,
+        uint256 nodeKey
+    ) internal view returns (uint256) {
         if (nodeKey == tree.minimum()) return MIN;
         if (nodeKey == 0) revert NodeKeyInvalid();
 
@@ -70,3 +83,5 @@ library BookRedBlackTreeLib {
         RedBlackTreeLib.remove(tree.tree, nodeKey);
     }
 }
+
+// @audit

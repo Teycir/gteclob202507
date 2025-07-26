@@ -13,10 +13,15 @@ struct EventNonceStorage {
 /// @custom:storage-location erc7201:EventNonceStorage
 library EventNonceLib {
     bytes32 constant EVENT_NONCE_STORAGE_POSITION =
-        keccak256(abi.encode(uint256(keccak256("EventNonceStorage")) - 1)) & ~bytes32(uint256(0xff));
+        keccak256(abi.encode(uint256(keccak256("EventNonceStorage")) - 1)) &
+            ~bytes32(uint256(0xff));
 
     // slither-disable-next-line uninitialized-storage
-    function getEventNonceStorage() internal pure returns (EventNonceStorage storage ds) {
+    function getEventNonceStorage()
+        internal
+        pure
+        returns (EventNonceStorage storage ds)
+    {
         bytes32 position = EVENT_NONCE_STORAGE_POSITION;
 
         // slither-disable-next-line assembly
@@ -39,3 +44,5 @@ library EventNonceLib {
         return ds.eventNonce;
     }
 }
+
+// @audit

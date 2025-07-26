@@ -25,22 +25,44 @@ struct SettingsParams {
 interface ICLOBManager {
     // Basic getters from ICLOBAdminPanel
     function beacon() external view returns (address);
-    function getMarketAddress(address quoteToken, address baseToken) external view returns (address);
+    function getMarketAddress(
+        address quoteToken,
+        address baseToken
+    ) external view returns (address);
     function isMarket(address market) external view returns (bool);
 
     // Market creation and management from ICLOBAdminPanel
-    function createMarket(address baseToken, address quoteToken, SettingsParams calldata settings)
-        external
-        returns (address marketAddress);
+    function createMarket(
+        address baseToken,
+        address quoteToken,
+        SettingsParams calldata settings
+    ) external returns (address marketAddress);
 
-    function setMaxLimitsPerTx(ICLOB[] calldata clobs, uint8[] calldata maxLimits) external;
-    function setTickSizes(ICLOB[] calldata clobs, uint256[] calldata tickSizes) external;
-    function setMinLimitOrderAmounts(ICLOB[] calldata clobs, uint256[] calldata minLimitOrderAmounts) external;
+    function setMaxLimitsPerTx(
+        ICLOB[] calldata clobs,
+        uint8[] calldata maxLimits
+    ) external;
+    function setTickSizes(
+        ICLOB[] calldata clobs,
+        uint256[] calldata tickSizes
+    ) external;
+    function setMinLimitOrderAmounts(
+        ICLOB[] calldata clobs,
+        uint256[] calldata minLimitOrderAmounts
+    ) external;
 
     // Limit management getters
     function getMaxLimitExempt(address account) external view returns (bool);
 
     // Fee and limit management
-    function setAccountFeeTiers(address[] calldata accounts, FeeTiers[] calldata feeTiers) external;
-    function setMaxLimitsExempt(address[] calldata accounts, bool[] calldata toggles) external;
+    function setAccountFeeTiers(
+        address[] calldata accounts,
+        FeeTiers[] calldata feeTiers
+    ) external;
+    function setMaxLimitsExempt(
+        address[] calldata accounts,
+        bool[] calldata toggles
+    ) external;
 }
+
+// @audit

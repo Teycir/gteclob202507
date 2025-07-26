@@ -120,7 +120,11 @@ contract GTERouter is ReentrancyGuardTransient {
 
     /// @notice A spot deposit wrapper for multicalls
     /// @dev fromRouter lets you keep token approvals here
-    function spotDeposit(address token, uint256 amount, bool fromRouter) external {
+    function spotDeposit(
+        address token,
+        uint256 amount,
+        bool fromRouter
+    ) external {
         if (fromRouter) {
             token.safeTransferFrom(msg.sender, address(this), amount);
             token.safeApprove(address(acctManager), amount);
@@ -156,7 +160,10 @@ contract GTERouter is ReentrancyGuardTransient {
     }
 
     /// @notice A clob cancel wrapper for multicalling one address
-    function clobCancel(ICLOB clob, ICLOB.CancelArgs calldata args)
+    function clobCancel(
+        ICLOB clob,
+        ICLOB.CancelArgs calldata args
+    )
         external
         isMarket(clob)
         returns (uint256 quoteRefunded, uint256 baseRefunded)
@@ -165,62 +172,62 @@ contract GTERouter is ReentrancyGuardTransient {
     }
 
     /// @notice Amends an order on behalf of the user
-    function clobAmend(ICLOB clob, ICLOB.AmendArgs calldata args)
-        external
-        isMarket(clob)
-        returns (int256 quoteDelta, int256 baseDelta)
-    {
+    function clobAmend(
+        ICLOB clob,
+        ICLOB.AmendArgs calldata args
+    ) external isMarket(clob) returns (int256 quoteDelta, int256 baseDelta) {
         return clob.amend(msg.sender, args);
     }
 
     /// @notice A clob post limit order wrapper for multicalling one address
-    function clobPostLimitOrder(ICLOB clob, ICLOB.PostLimitOrderArgs calldata args)
-        external
-        isMarket(clob)
-        returns (ICLOB.PostLimitOrderResult memory)
-    {
+    function clobPostLimitOrder(
+        ICLOB clob,
+        ICLOB.PostLimitOrderArgs calldata args
+    ) external isMarket(clob) returns (ICLOB.PostLimitOrderResult memory) {
         return clob.postLimitOrder(msg.sender, args);
     }
 
     /// @notice A clob post fill order wrapper for multicalling one address
-    function clobPostFillOrder(ICLOB clob, ICLOB.PostFillOrderArgs calldata args)
-        external
-        isMarket(clob)
-        returns (ICLOB.PostFillOrderResult memory)
-    {
+    function clobPostFillOrder(
+        ICLOB clob,
+        ICLOB.PostFillOrderArgs calldata args
+    ) external isMarket(clob) returns (ICLOB.PostFillOrderResult memory) {
         return clob.postFillOrder(msg.sender, args);
     }
 
     /// @notice A launchpad sell wrapper for multicalls
-    function launchpadSell(address launchToken, uint256 amountInBase, uint256 worstAmountOutQuote)
-        external
-        nonReentrant
-        returns (uint256 baseSpent, uint256 quoteBought)
-    {
-        return launchpad.sell({
-            account: msg.sender,
-            token: launchToken,
-            recipient: msg.sender,
-            amountInBase: amountInBase,
-            minAmountOutQuote: worstAmountOutQuote
-        });
-    }
-
-    /// @notice A launchpad buy wrapper for multicalls\
-    function launchpadBuy(address launchToken, uint256 amountOutBase, address quoteToken, uint256 worstAmountInQuote)
-        external
-        nonReentrant
-        returns (uint256 baseBought, uint256 quoteSpent)
-    {
-        return launchpad.buy(
-            ILaunchpad.BuyData({
+    function launchpadSell(
+        address launchToken,
+        uint256 amountInBase,
+        uint256 worstAmountOutQuote
+    ) external nonReentrant returns (uint256 baseSpent, uint256 quoteBought) {
+        return
+            launchpad.sell({
                 account: msg.sender,
                 token: launchToken,
                 recipient: msg.sender,
-                amountOutBase: amountOutBase,
-                maxAmountInQuote: worstAmountInQuote
-            })
-        );
+                amountInBase: amountInBase,
+                minAmountOutQuote: worstAmountOutQuote
+            });
+    }
+
+    /// @notice A launchpad buy wrapper for multicalls\
+    function launchpadBuy(
+        address launchToken,
+        uint256 amountOutBase,
+        address quoteToken,
+        uint256 worstAmountInQuote
+    ) external nonReentrant returns (uint256 baseBought, uint256 quoteSpent) {
+        return
+            launchpad.buy(
+                ILaunchpad.BuyData({
+                    account: msg.sender,
+                    token: launchToken,
+                    recipient: msg.sender,
+                    amountOutBase: amountOutBase,
+                    maxAmountInQuote: worstAmountInQuote
+                })
+            );
     }
 
     struct __RouteMetadata__ {
@@ -242,8 +249,17 @@ contract GTERouter is ReentrancyGuardTransient {
         uint256 amountOutMin,
         uint256 deadline,
         bytes[] calldata hops
-    ) external nonReentrant inTime(deadline) returns (uint256 finalAmountOut, address finalTokenOut) {
-        (finalAmountOut, finalTokenOut) = _executeAllHops(tokenIn, amountIn, hops);
+    )
+        external
+        nonReentrant
+        inTime(deadline)
+        returns (uint256 finalAmountOut, address finalTokenOut)
+    {
+        (finalAmountOut, finalTokenOut) = _executeAllHops(
+            tokenIn,
+            amountIn,
+            hops
+        );
 
         if (finalAmountOut < amountOutMin) revert SlippageToleranceExceeded();
     }
@@ -253,7 +269,8 @@ contract GTERouter is ReentrancyGuardTransient {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     function _assertValidCLOB(address clob) internal view {
-        if (!clobAdminPanel.isMarket(address(clob))) revert InvalidCLOBAddress();
+        if (!clobAdminPanel.isMarket(address(clob)))
+            revert InvalidCLOBAddress();
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
@@ -261,10 +278,11 @@ contract GTERouter is ReentrancyGuardTransient {
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
 
     // slither-disable-start incorrect-equality
-    function _executeAllHops(address tokenIn, uint256 amountIn, bytes[] calldata hops)
-        internal
-        returns (uint256 finalAmountOut, address finalTokenOut)
-    {
+    function _executeAllHops(
+        address tokenIn,
+        uint256 amountIn,
+        bytes[] calldata hops
+    ) internal returns (uint256 finalAmountOut, address finalTokenOut) {
         __RouteMetadata__ memory route = __RouteMetadata__({
             nextTokenIn: tokenIn,
             prevAmountOut: amountIn,
@@ -274,12 +292,20 @@ contract GTERouter is ReentrancyGuardTransient {
 
         for (uint256 i = 0; i < hops.length; i++) {
             HopType currHopType = route.nextHopType;
-            route.nextHopType = (i == hops.length - 1) ? HopType.NULL : hops[i + 1].getHopType();
+            route.nextHopType = (i == hops.length - 1)
+                ? HopType.NULL
+                : hops[i + 1].getHopType();
 
             if (currHopType == HopType.CLOB_FILL) {
-                (route.prevAmountOut, route.nextTokenIn) = _executeClobPostFillOrder(route, hops[i]);
+                (
+                    route.prevAmountOut,
+                    route.nextTokenIn
+                ) = _executeClobPostFillOrder(route, hops[i]);
             } else if (currHopType == HopType.UNI_V2_SWAP) {
-                (route.prevAmountOut, route.nextTokenIn) = _executeUniV2SwapExactTokensForTokens(route, hops[i]);
+                (
+                    route.prevAmountOut,
+                    route.nextTokenIn
+                ) = _executeUniV2SwapExactTokensForTokens(route, hops[i]);
             }
 
             route.prevHopType = currHopType;
@@ -290,20 +316,25 @@ contract GTERouter is ReentrancyGuardTransient {
     // slither-disable-end incorrect-equality
 
     // slither-disable-start calls-loop
-    function _executeClobPostFillOrder(__RouteMetadata__ memory route, bytes calldata hop)
-        internal
-        returns (uint256 amountOut, address tokenOut)
-    {
+    function _executeClobPostFillOrder(
+        __RouteMetadata__ memory route,
+        bytes calldata hop
+    ) internal returns (uint256 amountOut, address tokenOut) {
         tokenOut = abi.decode(hop[1:], (ClobHopArgs)).tokenOut;
 
-        address market = clobAdminPanel.getMarketAddress(route.nextTokenIn, tokenOut);
+        address market = clobAdminPanel.getMarketAddress(
+            route.nextTokenIn,
+            tokenOut
+        );
 
         if (market == address(0)) revert CLOBDoesNotExist();
 
         // slither-disable-next-line uninitialized-local Construct post limit calldata
         ICLOB.PostFillOrderArgs memory fillArgs;
 
-        fillArgs.side = ICLOB(market).getQuoteToken() == route.nextTokenIn ? Side.BUY : Side.SELL;
+        fillArgs.side = ICLOB(market).getQuoteToken() == route.nextTokenIn
+            ? Side.BUY
+            : Side.SELL;
         fillArgs.priceLimit = fillArgs.side == Side.BUY ? type(uint256).max : 0; // executeRoute enforced slippage at the end
         fillArgs.amountIsBase = fillArgs.side == Side.SELL;
 
@@ -311,7 +342,10 @@ contract GTERouter is ReentrancyGuardTransient {
         fillArgs.fillOrderType = ICLOB.FillOrderType.FILL_OR_KILL;
 
         // Execute trade
-        ICLOB.PostFillOrderResult memory result = ICLOB(market).postFillOrder(msg.sender, fillArgs);
+        ICLOB.PostFillOrderResult memory result = ICLOB(market).postFillOrder(
+            msg.sender,
+            fillArgs
+        );
 
         // Actual amount out, net of fees
         amountOut = fillArgs.side == Side.BUY
@@ -321,17 +355,21 @@ contract GTERouter is ReentrancyGuardTransient {
         return (amountOut, tokenOut);
     }
 
-    function _executeUniV2SwapExactTokensForTokens(__RouteMetadata__ memory route, bytes calldata hop)
-        internal
-        returns (uint256 amountOut, address tokenOut)
-    {
+    function _executeUniV2SwapExactTokensForTokens(
+        __RouteMetadata__ memory route,
+        bytes calldata hop
+    ) internal returns (uint256 amountOut, address tokenOut) {
         UniV2HopArgs memory args = abi.decode(hop[1:], (UniV2HopArgs));
         address[] memory path = args.path;
 
         if (path[0] != route.nextTokenIn) revert InvalidTokenRoute();
 
         if (route.prevHopType != HopType.UNI_V2_SWAP) {
-            acctManager.withdrawToRouter(msg.sender, route.nextTokenIn, route.prevAmountOut);
+            acctManager.withdrawToRouter(
+                msg.sender,
+                route.nextTokenIn,
+                route.prevAmountOut
+            );
         }
 
         path[0].safeApprove(address(uniV2Router), route.prevAmountOut);
@@ -347,7 +385,8 @@ contract GTERouter is ReentrancyGuardTransient {
         tokenOut = path[path.length - 1];
         amountOut = amounts[amounts.length - 1];
 
-        if (route.nextHopType != HopType.UNI_V2_SWAP) _accountDepositInternal(tokenOut, amountOut);
+        if (route.nextHopType != HopType.UNI_V2_SWAP)
+            _accountDepositInternal(tokenOut, amountOut);
 
         return (amounts[amounts.length - 1], tokenOut);
     }
@@ -366,7 +405,11 @@ contract GTERouter is ReentrancyGuardTransient {
 }
 
 library HopLib {
-    function getHopType(bytes calldata hop) internal pure returns (GTERouter.HopType) {
+    function getHopType(
+        bytes calldata hop
+    ) internal pure returns (GTERouter.HopType) {
         return GTERouter.HopType(uint8(bytes1(hop[0:1])));
     }
 }
+
+// @audit

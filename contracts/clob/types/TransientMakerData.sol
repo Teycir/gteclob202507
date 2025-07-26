@@ -12,9 +12,11 @@ struct MakerCredit {
 // slither-disable-start assembly
 library TransientMakerData {
     bytes32 constant TRANSIENT_MAKERS_POSITION =
-        keccak256(abi.encode(uint256(keccak256("TransientMakers")) - 1)) & ~bytes32(uint256(0xff));
+        keccak256(abi.encode(uint256(keccak256("TransientMakers")) - 1)) &
+            ~bytes32(uint256(0xff));
     bytes32 constant TRANSIENT_CREDITS_POSITION =
-        keccak256(abi.encode(uint256(keccak256("TransientCredits")) - 1)) & ~bytes32(uint256(0xff));
+        keccak256(abi.encode(uint256(keccak256("TransientCredits")) - 1)) &
+            ~bytes32(uint256(0xff));
 
     /// @dev sig: 0xe47ec074
     error ArithmeticOverflow();
@@ -28,7 +30,9 @@ library TransientMakerData {
         assembly ("memory-safe") {
             exists := iszero(iszero(tload(slot)))
 
-            if iszero(exists) { tstore(slot, 1) }
+            if iszero(exists) {
+                tstore(slot, 1)
+            }
 
             let balSlot := add(slot, 1)
 
@@ -55,7 +59,9 @@ library TransientMakerData {
         assembly ("memory-safe") {
             exists := iszero(iszero(tload(slot)))
 
-            if iszero(exists) { tstore(slot, 1) }
+            if iszero(exists) {
+                tstore(slot, 1)
+            }
 
             let balSlot := add(slot, 2)
 
@@ -74,7 +80,10 @@ library TransientMakerData {
     }
 
     /// @dev Gets the maker credits and clears the storage
-    function getMakerCreditsAndClearStorage() internal returns (MakerCredit[] memory makerCredits) {
+    function getMakerCreditsAndClearStorage()
+        internal
+        returns (MakerCredit[] memory makerCredits)
+    {
         address[] memory makers = _getMakersAndClear();
 
         uint256 length = makers.length;
@@ -87,7 +96,11 @@ library TransientMakerData {
         for (uint256 i; i < length; i++) {
             (quoteAmount, baseAmount) = _getBalancesAndClear(makers[i]);
 
-            makerCredits[i] = MakerCredit({maker: makers[i], quoteAmount: quoteAmount, baseAmount: baseAmount});
+            makerCredits[i] = MakerCredit({
+                maker: makers[i],
+                quoteAmount: quoteAmount,
+                baseAmount: baseAmount
+            });
         }
     }
 
@@ -121,7 +134,11 @@ library TransientMakerData {
             let dataSlot := keccak256(0x00, 0x20)
             let memPointer := add(makers, 0x20)
 
-            for { let i := 0 } lt(i, len) { i := add(i, 1) } {
+            for {
+                let i := 0
+            } lt(i, len) {
+                i := add(i, 1)
+            } {
                 mstore(add(memPointer, mul(i, 0x20)), tload(add(dataSlot, i)))
                 tstore(add(dataSlot, i), 0) // clear maker
             }
@@ -131,7 +148,9 @@ library TransientMakerData {
         }
     }
 
-    function _getBalancesAndClear(address maker) internal returns (uint256 quoteAmount, uint256 baseAmount) {
+    function _getBalancesAndClear(
+        address maker
+    ) internal returns (uint256 quoteAmount, uint256 baseAmount) {
         bytes32 slot = keccak256(abi.encode(TRANSIENT_CREDITS_POSITION, maker));
 
         assembly ("memory-safe") {
@@ -150,3 +169,5 @@ library TransientMakerData {
     }
 }
 // slither-disable-end assembly
+
+// @audit

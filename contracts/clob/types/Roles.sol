@@ -25,3 +25,5 @@ library Roles {
     uint256 constant MAX_LIMITS_PER_TX_SETTER = 1 << 6; // _ROLE_6
     uint256 constant MIN_LIMIT_ORDER_AMOUNT_SETTER = 1 << 7; // _ROLE_7
 }
+
+// @audit

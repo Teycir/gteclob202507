@@ -81,22 +81,36 @@ interface ICLOB {
     }
 
     // Post
-    function postLimitOrder(address account, PostLimitOrderArgs memory args)
-        external
-        returns (PostLimitOrderResult memory);
+    function postLimitOrder(
+        address account,
+        PostLimitOrderArgs memory args
+    ) external returns (PostLimitOrderResult memory);
 
-    function postFillOrder(address account, PostFillOrderArgs memory args)
-        external
-        returns (PostFillOrderResult memory);
+    function postFillOrder(
+        address account,
+        PostFillOrderArgs memory args
+    ) external returns (PostFillOrderResult memory);
 
-    function amend(address account, AmendArgs memory args) external returns (int256 quoteDelta, int256 baseDelta);
+    function amend(
+        address account,
+        AmendArgs memory args
+    ) external returns (int256 quoteDelta, int256 baseDelta);
 
-    function cancel(address account, CancelArgs memory args) external returns (uint256, uint256); // quoteToken refunded, baseToken refunded
+    function cancel(
+        address account,
+        CancelArgs memory args
+    ) external returns (uint256, uint256); // quoteToken refunded, baseToken refunded
 
     // Token Amount Calculators
-    function getQuoteTokenAmount(uint256 price, uint256 amountInBaseLots) external view returns (uint256);
+    function getQuoteTokenAmount(
+        uint256 price,
+        uint256 amountInBaseLots
+    ) external view returns (uint256);
 
-    function getBaseTokenAmount(uint256 price, uint256 amountInBaseLots) external view returns (uint256);
+    function getBaseTokenAmount(
+        uint256 price,
+        uint256 amountInBaseLots
+    ) external view returns (uint256);
 
     // Getters
 
@@ -116,33 +130,50 @@ interface ICLOB {
 
     function getTOB() external view returns (uint256, uint256);
 
-    function getLimit(uint256 price, Side side) external view returns (Limit memory);
+    function getLimit(
+        uint256 price,
+        Side side
+    ) external view returns (Limit memory);
 
     function getNumBids() external view returns (uint256);
 
     function getNumAsks() external view returns (uint256);
 
-    function getNextBiggestPrice(uint256 price, Side side) external view returns (uint256);
+    function getNextBiggestPrice(
+        uint256 price,
+        Side side
+    ) external view returns (uint256);
 
-    function getNextSmallestPrice(uint256 price, Side side) external view returns (uint256);
+    function getNextSmallestPrice(
+        uint256 price,
+        Side side
+    ) external view returns (uint256);
 
-    function getNextOrders(uint256 startOrderId, uint256 numOrders) external view returns (Order[] memory);
+    function getNextOrders(
+        uint256 startOrderId,
+        uint256 numOrders
+    ) external view returns (Order[] memory);
 
     function getNextOrderId() external view returns (uint256);
 
     function factory() external view returns (ICLOBManager);
 
-    function getOrdersPaginated(uint256 startPrice, Side side, uint256 pageSize)
-        external
-        view
-        returns (Order[] memory result, Order memory nextOrder);
+    function getOrdersPaginated(
+        uint256 startPrice,
+        Side side,
+        uint256 pageSize
+    ) external view returns (Order[] memory result, Order memory nextOrder);
 
-    function getOrdersPaginated(OrderId startOrderId, uint256 pageSize)
-        external
-        view
-        returns (Order[] memory result, Order memory nextOrder);
+    function getOrdersPaginated(
+        OrderId startOrderId,
+        uint256 pageSize
+    ) external view returns (Order[] memory result, Order memory nextOrder);
 
     function setMaxLimitsPerTx(uint8 newMaxLimits) external;
     function setTickSize(uint256 newTickSize) external;
-    function setMinLimitOrderAmountInBase(uint256 newMinLimitOrderAmountInBase) external;
+    function setMinLimitOrderAmountInBase(
+        uint256 newMinLimitOrderAmountInBase
+    ) external;
 }
+
+// @audit
