@@ -1,4 +1,3 @@
-```markdown
 # ReportVulns.md  
 _Comprehensive list of vulnerabilities detected through manual review **and** automated tools  
 (Aderyn + Slither `--show-ignored-findings`)_
@@ -24,5 +23,3 @@ _Comprehensive list of vulnerabilities detected through manual review **and** au
 * Column **Affected Contract / Function(s)** gives precise touch-points for patching.  
 * IDs correspond to internal tracking; severities follow Code4rena conventions.  
 * Items 11–12 are informational; include them only if your process requires full traceability.
-
-```
