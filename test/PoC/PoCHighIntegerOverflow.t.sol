@@ -129,3 +129,21 @@ contract H03_IntegerOverflowTest is Test {
         assertEq(bal, 0, "balance wrapped incorrectly (overflow hit)");
     }
 }
+
+// forge test --match-path test/PoC/PoCHighIntegerOverflow.t.sol -vvv
+// [⠊] Compiling...
+// [⠒] Compiling 1 files with Solc 0.8.27
+// [⠢] Solc 0.8.27 finished in 1.04s
+// Compiler run successful with warnings:
+// Warning (5667): Unused function parameter. Remove or comment out the variable name to silence this war
+// ning.                                                                                                    --> contracts/clob/types/Book.sol:202:9:
+//     |
+// 202 |         Book storage self,
+//     |         ^^^^^^^^^^^^^^^^^
+
+// Ran 2 tests for test/PoC/PoCHighIntegerOverflow.t.sol:H03_IntegerOverflowTest
+// [PASS] test_overflow_creditAccount() (gas: 64589)
+// [PASS] test_overflow_creditAccountNoEvent() (gas: 27749)
+// Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 640.13µs (290.35µs CPU time)
+
+// Ran 1 test suite in 5.65ms (640.13µs CPU time): 2 tests passed, 0 failed, 0 skipped (2 total tests)
