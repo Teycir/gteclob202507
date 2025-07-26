@@ -150,8 +150,8 @@ The vulnerability can be fixed by adhering to the Checks-Effects-Interactions pa
 
 ## Reference Links (root-cause)
 
-1.  [`AccountManager.sol#L192-L203`](contracts/account-manager/AccountManager.sol:166) – Vulnerable `deposit` function.
-2.  [`AccountManager.sol#L206-L213`](contracts/account-manager/AccountManager.sol:172) – Vulnerable `depositFromRouter` function.
+1.  [`AccountManager.sol#L166`](contracts/account-manager/AccountManager.sol:166) – Vulnerable `deposit` function.
+2.  [`AccountManager.sol#L172`](contracts/account-manager/AccountManager.sol:172) – Vulnerable `depositFromRouter` function.
 
 ---
 
