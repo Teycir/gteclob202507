@@ -22,7 +22,7 @@ The `AccountManager.deposit` function is vulnerable to a classic re-entrancy att
 
 **Root Cause:** The `deposit` function violates the Checks-Effects-Interactions pattern. The state change (Effect) is performed before the external call (Interaction).
 
-The vulnerable code is in `AccountManager.deposit` ([L192-L203](contracts/account-manager/AccountManager.sol:192)):
+The vulnerable code is in `AccountManager.deposit` ([L166](contracts/account-manager/AccountManager.sol:166)):
 ```solidity
     function deposit(
         address account,
@@ -150,8 +150,8 @@ The vulnerability can be fixed by adhering to the Checks-Effects-Interactions pa
 
 ## Reference Links (root-cause)
 
-1.  [`AccountManager.sol#L192-L203`](contracts/account-manager/AccountManager.sol:192) – Vulnerable `deposit` function.
-2.  [`AccountManager.sol#L206-L213`](contracts/account-manager/AccountManager.sol:206) – Vulnerable `depositFromRouter` function.
+1.  [`AccountManager.sol#L192-L203`](contracts/account-manager/AccountManager.sol:166) – Vulnerable `deposit` function.
+2.  [`AccountManager.sol#L206-L213`](contracts/account-manager/AccountManager.sol:172) – Vulnerable `depositFromRouter` function.
 
 ---
 
