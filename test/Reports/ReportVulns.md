@@ -1,25 +1,29 @@
+
 # ReportVulns.md  
 _Comprehensive list of vulnerabilities detected through manual review **and** automated tools  
 (Aderyn + Slither `--show-ignored-findings`)_
 
-| # | Severity | Description | Affected Contract / Function(s) | Recommended Fix |
-|---|----------|-------------|---------------------------------|-----------------|
-| **1** | Critical 🟥 | **Re-entrancy / Balance-inflation** – internal balance credited **before** `transferFrom`, plus arbitrary-sender vector. | `AccountManager`<br>• `deposit`<br>• `depositFromRouter` | Follow CEI: move `safeTransferFrom` **before** `_creditAccount`; add `nonReentrant`. |
-| **2** | Critical 🟥 | **Zero-cost-trade check faulty** – uses bit-wise `&`, causing false reverts & dust trades. | `CLOB`<br>• `_processLimitBidOrder`<br>• `_processLimitAskOrder` | Replace with `if (quote == 0 || base == 0) revert ZeroCostTrade();`. |
-| **3** | High 🟧 | **EIP-1153 transient storage not live on many chains** – contracts revert on deployment. | `TransientMakerData` library (all fns)<br>`BookLib` transients | Gate by `chainid`, or provide storage fallback until Prague activated. |
-| **4** | High 🟧 | **Infinite-loop / DoS** – matching loop never breaks when `lotSizeInBase` > remaining amount. | `CLOB`<br>• `_matchIncomingBid`<br>• `_matchIncomingAsk` | Break early if `lotSize > incoming.amount` or pre-validate lot size. |
-| **5** | High 🟧 | **Strict enum equality w/o range check** – undefined `Side` values bypass logic, return junk. | `GTERouter`<br>• `_executeClobPostFillOrder` | Add `require(side==BUY || side==SELL)` or revert `InvalidSide`. |
-| **6** | Medium 🟨 | **Uninitialised locals** – may leak junk on future refactor. | `CLOB`<br>• `_settleIncomingOrder` (`settleParams`)<br>• `_removeNonCompetitiveOrder` (`quoteRefunded`, `baseRefunded`)<br>• `_executeAmendNewOrder` (`newOrder`)<br>`CLOBManager`<br>• `createMarket` (`config`) | Initialise structs explicitly (`SettleParams memory s = …`). |
-| **7** | Medium 🟨 | **Locked Ether** – contracts receive ETH but lack withdraw. | `Distributor` (fallback)<br>`AccountManager` (inherited payable)<br>`CLOBManager` (inherited payable) | Add owner-only `sweepETH(address)`; refund mistaken deposits. |
-| **8** | Medium 🟨 | **Missing re-entrancy guards** on state-changing funcs that transfer tokens. | • `AccountManager.collectFees`<br>• `GTERouter.wrapSpotDeposit`<br>• `GTERouter.spotDeposit / spotWithdraw / launchpadSell / launchpadBuy` | Add `nonReentrant` or move external calls after state updates. |
-| **9** | Low 🟩 | **Off-by-one in fee-array accessor** (`index >= 15` cap). | `PackedFeeRatesLib.getFeeAt` (contracts/clob/types/FeeData.sol) | Change guard to `if (index >= 16) revert FeeTierIndexOutOfBounds();`. |
-| **10** | Low 🟩 | **Role-check helper readability** – duplicated admin bit logic. | `OperatorHelperLib.assertHasRole` | Compute `hasRole` & `isAdmin` separately for clarity. |
-| **11** | Info ⚙️ | Large set of Slither “incorrect-shift / divide-before-multiply / assembly” in **Solady** math libs – intentional gas optimisations. | Solady utility libraries | Accept as-is or swap for safer (slower) math libs. |
-| **12** | Info ⚙️ | “Locked Ether” on `GTERouter` is a false positive – ETH immediately wrapped in WETH. | `GTERouter` (`receive()` & `wrapSpotDeposit`) | No action required. |
+| # | Sev. | Description | Affected Contract / Function(s) | LOC* | Recommended Fix |
+|---|------|-------------|---------------------------------|------|-----------------|
+| **1** | 🟥 | Re-entrancy / balance-inflation – balance is credited **before** ERC-20 `transferFrom`; arbitrary-sender vector. | `AccountManager`  <br>• `deposit`  <br>• `depositFromRouter` |  `AccountManager.sol` 166-175 | Move `safeTransferFrom` **before** `_creditAccount`; add `nonReentrant`. |
+| **2** | 🟥 | Faulty “zero-cost-trade” check uses bitwise `&`; can revert valid trades or allow dust. | `CLOB`  <br>• `_processLimitBidOrder`  <br>• `_processLimitAskOrder` |  `CLOB.sol` 505-515 & 545-555 | `if (quote==0 || base==0) revert ZeroCostTrade();`. |
+| **3** | 🟧 | Relies on EIP-1153 transient storage – deployment reverts on non-Prague chains. | `TransientMakerData` (all fns) <br>`BookLib` transient helpers |  Multiple (`TransientMakerData.sol` 17-196, `Book.sol` 113-152) | Gate by `chainid` or add storage fallback. |
+| **4** | 🟧 | Infinite-loop / DoS – matching loop never breaks if `lotSizeInBase` > remaining amount. | `CLOB`  <br>• `_matchIncomingBid`  <br>• `_matchIncomingAsk` | `CLOB.sol` 742-770 & 777-804 | Break early when `lotSize > incoming.amount` or pre-validate. |
+| **5** | 🟧 | Strict enum equality without range check; invalid `Side` bypasses logic. | `GTERouter`  <br>• `_executeClobPostFillOrder` | `GTERouter.sol` 306-320 | `require(side==BUY || side==SELL)`. |
+| **6** | 🟨 | Uninitialised locals may leak junk on future refactor. | `CLOB`  <br>• `_settleIncomingOrder` (`settleParams`)  <br>• `_removeNonCompetitiveOrder` (`quoteRefunded`,`baseRefunded`)  <br>• `_executeAmendNewOrder` (`newOrder`)  <br>`CLOBManager`  <br>• `createMarket` (`config`) | `CLOB.sol` 949-959, 875-884, 678-690 <br>`CLOBManager.sol` 177-185 | Initialise structs / vars explicitly. |
+| **7** | 🟨 | Locked Ether – contracts can receive ETH but lack withdraw. | `Distributor`  (fallback) 13-198 <br>`AccountManager` 27-341 <br>`CLOBManager` 54-341 | — | Add owner-only `sweepETH(address)`. |
+| **8** | 🟨 | Missing re-entrancy guards on state-changing functions that transfer tokens. | `AccountManager.collectFees` 214-232 <br>`GTERouter.wrapSpotDeposit` 140-151 <br>`GTERouter.spotDeposit / spotWithdraw / launchpadSell / launchpadBuy` 112-208 | Various | Add `nonReentrant` or move external calls to end. |
+| **9** | 🟩 | Off-by-one in fee-array accessor (`index >= 15` cap but 16 slots). | `PackedFeeRatesLib.getFeeAt` | `FeeData.sol` 56-63 | Guard with `index >= 16`. |
+| **10** | 🟩 | Role-check helper readability – admin bit double-counted. | `OperatorHelperLib.assertHasRole` | `OperatorHelperLib.sol` 8-22 | Separate `hasRole` & `isAdmin` checks. |
+| **11** | ⚙️ | Slither “incorrect-shift / divide-before-multiply / assembly” warnings in **Solady** libs – intentional gas opts. | Solady utils & math | `lib/solady/**` | Accept or replace with safer libs. |
+| **12** | ⚙️ | “Locked Ether” on `GTERouter` is false positive – ETH is wrapped immediately. | `GTERouter` (`receive()`, `wrapSpotDeposit`) | `GTERouter.sol` 98-118, 140-151 | No action needed. |
+
+\* **LOC** – approximate line numbers based on commit `9f06332`; adjust if file shifts.
 
 ---
 
-## Notes
-* Column **Affected Contract / Function(s)** gives precise touch-points for patching.  
-* IDs correspond to internal tracking; severities follow Code4rena conventions.  
-* Items 11–12 are informational; include them only if your process requires full traceability.
+### Notes
+* Severities align with Code4rena conventions.  
+* Rows 11-12 are informational; fix only if desired for cleanliness or tooling.  
+* Apply patches, rerun Slither with `--filter-paths "lib/**"` to verify Critical/High items are cleared.
+```
