@@ -27,15 +27,11 @@ The contracts `Book.sol` and `TransientMakerData.sol` make use of the `TSTORE` a
 The vulnerable code is located in two files:
 
 1.  **`contracts/clob/types/Book.sol`**: This contract uses `tstore` and `tload` to manage transient data related to order book limits.
-    *   [`Book.sol#L149`](contracts/clob/types/Book.sol:149)
-    *   [`Book.sol#L172`](contracts/clob/types/Book.sol:172)
-    *   [`Book.sol#L212`](contracts/clob/types/Book.sol:212)
-    *   [`Book.sol#L320`](contracts/clob/types/Book.sol:320)
+    *   [`Book.sol#L124`](contracts/clob/types/Book.sol:124) and others
 
 2.  **`contracts/clob/types/TransientMakerData.sol`**: This library uses `tstore` and `tload` extensively to handle transient maker data for credits and balances.
-    *   [`TransientMakerData.sol#L34`](contracts/clob/types/TransientMakerData.sol:34)
-    *   [`TransientMakerData.sol#L47`](contracts/clob/types/TransientMakerData.sol:47)
-    *   [`TransientMakerData.sol#L63`](contracts/clob/types/TransientMakerData.sol:63)
+    *   [`TransientMakerData.sol#L29`](contracts/clob/types/TransientMakerData.sol:29)
+    *   [`TransientMakerData.sol#L31`](contracts/clob/types/TransientMakerData.sol:31)
     *   ... and many other instances throughout the file.
 
 ---
@@ -101,8 +97,8 @@ This ensures that deployers are aware of the compatibility requirements and avoi
 
 ## Reference Links (root-cause)
 
-1.  [`contracts/clob/types/Book.sol#L149`](contracts/clob/types/Book.sol:149) – Use of `tstore` in `Book.sol`.
-2.  [`contracts/clob/types/TransientMakerData.sol#L34`](contracts/clob/types/TransientMakerData.sol:34) – Use of `tstore` in `TransientMakerData.sol`.
+1.  [`contracts/clob/types/Book.sol#L140)`](contracts/clob/types/Book.sol:140) – Use of `tstore` in `Book.sol`.
+2.  [`contracts/clob/types/TransientMakerData.sol#L31`](contracts/clob/types/TransientMakerData.sol:31) – Use of `tstore` in `TransientMakerData.sol`.
 3.  [EIP-1153: Transient storage opcodes](https://eips.ethereum.org/EIPS/eip-1153)
 4.  Cancun/Deneb Mainnet Activation: [Block 19427432](https://etherscan.io/block/19427432) (Mar-13-2024)
 
