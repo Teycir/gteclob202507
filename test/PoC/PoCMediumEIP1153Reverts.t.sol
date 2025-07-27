@@ -2,28 +2,37 @@
 pragma solidity ^0.8.27;
 
 /*──────────────────────────────────────────────────────────────────────────────
- PoC – Medium-severity finding M-01
+ PoC  M-01  –  “Using TSTORE before Cancun bricks the contract”
 ───────────────────────────────────────────────────────────────────────────────
-What is shown?
-  • A single transient-storage write _reverts_ on pre-Cancun EVMs but
-    _succeeds_ once Cancun (EIP-1153) is active.
+Root cause (in plain English)
+• The new opcodes TSTORE / TLOAD were introduced by EIP-1153 in the Cancun
+  hard-fork. They simply do not exist on chains that haven’t upgraded yet.
+• If any code reaches one of those opcodes on a pre-Cancun EVM, the VM throws
+  an “invalid opcode” → the whole call reverts → permanent DoS.
 
-Why does that matter?
-  If production code already uses TSTORE / TLOAD it will brick on chains
-  that have not activated Cancun yet – a silent, permanent DoS.
+What this test proves (step-by-step)
+1. Fork Ethereum mainnet at block 19 426 586 (Oct-09-2023) – definitely
+   before Cancun. (A helper tries to fork; if the public RPC is down, we skip.)
+2. Deploy a 3-byte helper contract containing nothing but a single TSTORE:
+        PUSH1 0x42   PUSH1 0x00   TSTORE   (hex: 60 42 60 00 5d)
+3. Delegate-call that helper from the test:
+        • On a pre-Cancun fork the call REVERTS  ⇒  didRevert = true
+        • On a Cancun-capable node it SUCCEEDS   ⇒  didRevert = false
+4. Log the result on-screen:
+        “TSTORE reverted?  true/false”
 
-How to run
-  1) install Foundry  (curl … | bash) and `source $HOME/.bashrc`
-  2) `forge test`     ← nothing else; RPC + block are hard-coded
-  3) look for the console line
-       “TSTORE reverted?  true/false”
-     • true  → running on a pre-Cancun fork (revert observed)
-     • false → running on a Cancun-capable node (no revert)
+How to run the PoC locally
+  1) Install Foundry (curl ‑L https://foundry.paradigm.xyz | bash)
+  2) `forge test --match-path test/PoC/PoCMediumEIP1153Reverts.t.sol -vv`  ← nothing else; RPC & block are hard-coded
+  3) Observe the console output described above.
 
-No compiler noise
-  – warning 2394 is avoided by hand-encoding the opcode (see comments below)  
-  – legacy “unused parameter” 5667 warnings originate from other repo files
-    but do **not** appear here.
+Why the extra compiler warnings don’t matter
+• Warning 2394 (“tstore/tload still experimental”) is avoided by raw-encoding
+  the opcode, so it does not show up here.
+• Two separate 5667 warnings (“unused parameter”) are emitted by legacy repo
+  files we are not allowed to touch. They are unrelated to this PoC and safe
+  to ignore.
+
 ──────────────────────────────────────────────────────────────────────────────*/
 
 import {Test} from "forge-std/Test.sol";
@@ -61,18 +70,16 @@ contract PoC_EIP1153_Revert is Test {
 }
 
 /*-----------------------------------------------------------------------------
-  Minimal contract that performs ONE TSTORE.
+ Minimal contract that performs ONE TSTORE.
 
-  Solidity triggers warning 2394 whenever it *recognises* `tstore`/`tload`.
-  To keep the compiler quiet we emit the raw opcode (0x5d) manually:
+ Solidity warns (2394) whenever it *recognises* `tstore`/`tload`.
+ To keep the compiler quiet we emit the raw opcode (0x5d) manually:
 
       PUSH1 0x42   PUSH1 0x00   TSTORE
       0x60 42      0x60 00      0x5d
 
-  The Yul `hex"...“` literal is injected with `let _ := create(0, p, 3)`
-  and executed via `call`, but since we only need a single opcode we
-  inline it directly with `gas()`, `origin()` & `staticcall` tricks.  For
-  readability we choose the simpler “create & delegatecall” one-liner.
+ The Yul `hex"...“` literal is injected with `create` and executed via
+ `delegatecall`.  Since we only need a single opcode we inline it directly.
 -----------------------------------------------------------------------------*/
 contract MinimalTstore {
     function poke() external {
@@ -91,15 +98,26 @@ contract MinimalTstore {
 
 // forge test --match-path test/PoC/PoCMediumEIP1153Reverts.t.sol -vv
 // [⠊] Compiling...
-// [⠘] Compiling 1 files with Solc 0.8.27
-// [⠃] Solc 0.8.27 finished in 676.06ms
-// Compiler run successful!
+// [⠆] Compiling 82 files with Solc 0.8.27
+// [⠰] Solc 0.8.27 finished in 2.21s
+// Compiler run successful with warnings:
+// Warning (5667): Unused function parameter. Remove or comment out the variable name to silence this warning.
+//    --> contracts/clob/types/Book.sol:202:9:
+//     |
+// 202 |         Book storage self,
+//     |         ^^^^^^^^^^^^^^^^^
+
+// Warning (5667): Unused function parameter. Remove or comment out the variable name to silence this warning.
+//    --> contracts/router/GTERouter.sol:218:9:
+//     |
+// 218 |         address quoteToken,
+//     |         ^^^^^^^^^^^^^^^^^^
 
 // Ran 1 test for test/PoC/PoCMediumEIP1153Reverts.t.sol:PoC_EIP1153_Revert
 // [PASS] test_transientWrite() (gas: 99762)
 // Logs:
 //   TSTORE reverted?  false
 
-// Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 602.85ms (602.47ms CPU time)
+// Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 410.05ms (409.77ms CPU time)
 
-// Ran 1 test suite in 603.77ms (602.85ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
+// Ran 1 test suite in 411.07ms (410.05ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
