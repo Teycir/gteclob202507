@@ -3,10 +3,7 @@
 ## Severity Justification (C4 rubric v4)
 This report meets the criteria for Medium severity, with a strong case for High if funds are shown to be frozen.
 
-| Rubric item | Why the issue matches |
-| :--- | :--- |
-
-| **MEDIUM — Denial of Service** | An unprivileged attacker can craft a malicious `hops` array that causes the `executeRoute` function to always revert. This is a permanent DoS for any affected market, as the malicious transaction can be spammed, preventing any legitimate trades. |
+**MEDIUM — Denial of Service** | An unprivileged attacker can craft a malicious `hops` array that causes the `executeRoute` function to always revert. This is a permanent DoS for any affected market, as the malicious transaction can be spammed, preventing any legitimate trades. 
 
 ## Summary
 The `GTERouter._executeClobPostFillOrder` function decodes and trusts the inner `hopType` from `ClobHopArgs` without verifying that it matches the outer `hopType` byte that governs the execution flow. An attacker can create a malicious `hops` payload where the outer `hopType` is `CLOB_FILL`, but the inner `hopType` is different (e.g., `NULL`). This inconsistency causes the router to fail when looking up the CLOB address, leading to a revert with `InvalidCLOBAddress`.
@@ -95,7 +92,7 @@ This approach saves ~150 gas per call compared to a full decode-then-check, maki
 
 
 ## Submission Checklist
-- [x] PoC fails on vulnerable commit
+
 - [x] No production files modified
 - [x] Report links to exact vulnerable lines
 - [x] Severity mapped to C4 rubric (Medium, with argument for High)
