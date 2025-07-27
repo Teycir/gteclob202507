@@ -1,130 +1,143 @@
-# ReportVulns.md
-_Comprehensive list of vulnerabilities detected through manual review **and** automated tools
-(Aderyn + Slither `--show-ignored-findings`)_
+# Updated Vulnerability Matrix
 
-| # | Sev. | Description | Affected Contract | Affected Functions | 🛠 Recommended Fix |
-|---|---|---|---|---|---|
-| **1** | [H-01] | Re-entrancy / balance-inflation – storage credited **before** token transfer (`arbitrary-send-erc20`). | `AccountManager` | `deposit` 192-203<br>`depositFromRouter` 206-213 | Move `safeTransferFrom` **before** `_creditAccount`; add `nonReentrant`. |
-| **2** | [H-02] | Faulty “zero-cost-trade” check uses bit-wise `&`. | `CLOB` | `_processLimitBidOrder` 636-641<br>`_processLimitAskOrder` 690-695 | Replace the faulty bitwise check with a logical OR: `(baseTokenAmountReceived == 0 || quoteTokenAmountSent == 0)`. |
-| **3** | [H-03] | Integer Overflow in Account Crediting. | `AccountManager` | `_creditAccount` 100-105<br>`_creditAccountNoEvent` 110-115 | Remove `unchecked` or add bounds checks (e.g., `require(balance + amount > balance, "Overflow");`). |
-| **4** | [M-01] | Uses EIP-1153 `tstore/tload`; deployment fails on non-Prague chains. | `TransientMakerData`<br>`BookLib` | (contract-level) 17-196<br>(contract-level) 113-152 | Gate by `chainid` or add storage fallback. |
-| **5** | [M-02] | Potential infinite loop / DoS when `lotSizeInBase` > remaining size. | `CLOB` | `_matchIncomingBid` 742-770<br>`_matchIncomingAsk` 777-804 | Break if `lotSize > incoming.amount`. |
-| **6** | [M-03] | Enum value not validated; invalid `Side` bypasses logic. | `GTERouter` | `_executeClobPostFillOrder` 306-320 | `require(side==BUY || side==SELL)`. |
-| **7** | [M-04] | Missing Event Emissions for Maker Account Balance Updates During Settlement. | `AccountManager` | `settleIncomingOrder` 300-320 | Replace `_creditAccountNoEvent` with `_creditAccount` or emit a batched event (e.g., `MakersCredited`). |
-| **8** | [L-01] | Uninitialised locals that may leak junk. | `CLOB`<br>`CLOBManager` | `_settleIncomingOrder` 949-959<br>`_removeNonCompetitiveOrder` 875-884<br>`_executeAmendNewOrder` 678-690<br>`createMarket` 177-185 | Initialise structs / vars explicitly. |
-| **9** | [L-02] | Contracts accept ETH but provide no withdraw. | `Distributor`<br>`AccountManager`<br>`CLOBManager` | `receive()` 13-198<br>`receive()` 27-341<br>`receive()` 54-341 | Add owner-only `sweepETH(address)`. |
-| **10** | [L-03] | No re-entrancy guard around state-change + transfers. | `AccountManager`<br>`GTERouter` | `collectFees` 250-266<br>`wrapSpotDeposit` 140-151 | Add `nonReentrant` or move transfers last. |
-| **11** | [L-04] | Off-by-one in packed fee accessor. | `PackedFeeRatesLib` | `getFeeAt` 56-63 | Change guard to `index >= 16`. |
-| **12** | [L-05] | Admin bit double-counted in role check (readability). | `OperatorHelperLib` | `assertHasRole` 8-22 | Split `hasRole` / `isAdmin`. |
+| # | Severity | ID / Title | Affected Contract(s) | Affected Function(s) & LOC | 🛠 Recommended Fix |
+|---|----------|------------|----------------------|---------------------------|--------------------|
+| 1 | 🟥 High | **[H-01] Re-entrancy / Balance-inflation** – storage credited before token transfer (arbitrary-send-ERC20) | `AccountManager` | `deposit` L192-203<br>`depositFromRouter` L206-213 | • Call `safeTransferFrom` **before** `_creditAccount`.<br>• Add `nonReentrant`. |
+| 2 | 🟥 High | **[H-02] Faulty “zero-cost-trade” check** uses bit-wise `&` instead of logical operator | `CLOB` | `_processLimitBidOrder` L636-641<br>`_processLimitAskOrder` L690-695 | Replace with logical OR:<br>```solidity\nif (quoteSent == 0 || baseRecv == 0) revert ZeroCostTrade();\n``` |
+| 3 | 🟥 High | **[H-03] Integer overflow** in account crediting (`unchecked`) | `AccountManager` | `_creditAccount` L100-105<br>`_creditAccountNoEvent` L110-115 | Remove `unchecked` **or** add `require(balance + amount >= balance)`. |
+| 4 | 🟧 Med | **[M-01] EIP-1153 (`tstore/tload`)** – reverts on non-Prague chains | `TransientMakerData`, `BookLib` | Assembly blocks | Gate by `chainid` or provide classic-storage fallback. |
+| 5 | 🟧 Med | **[M-02] Infinite-loop / gas-DoS** when `lotSizeInBase` > remainder | `CLOB` | `_matchIncomingBid` L742-770<br>`_matchIncomingAsk` L777-804 | Break when `lotSize > incoming.amount` **or** ensure `incoming.amount` strictly decreases. |
+| 6 | 🟧 Med | **[M-03] Enum value not validated** – crafted calldata can bypass logic | `GTERouter` | `_executeClobPostFillOrder` L306-320 | `require(side == Side.BUY || side == Side.SELL)`. |
+| 7 | 🟧 Med | **[M-04] Missing event emissions** during maker settlement | `AccountManager` | `settleIncomingOrder` L300-320 | Emit events **or** use `_creditAccount` instead of `_creditAccountNoEvent`. |
+| 8 | 🟨 Low | **[L-01] Un-initialised locals / structs** | `CLOB`, `CLOBManager` | `_settleIncomingOrder` L949-959<br>`_removeNonCompetitiveOrder` L875-884<br>`_executeAmendNewOrder` L678-690<br>`createMarket` L177-185 | Initialise variables explicitly. |
+| 9 | 🟨 Low | **[L-02] Contracts receive ETH but lack withdrawal** | `Distributor`, `AccountManager`, `CLOBManager` | `receive()` functions | Add owner-only `sweepETH(address)` or similar. |
+| 10 | 🟨 Low | **[L-03] No re-entrancy guard** around state-change + token transfer | `AccountManager`, `GTERouter` | `collectFees` L250-266<br>`wrapSpotDeposit` L140-151 | Add `nonReentrant` **or** move transfers after state-update. |
+| 11 | 🟩 Info | **[L-04] Off-by-one in packed-fee accessor** (index 15 skipped) | `PackedFeeRatesLib` | `getFeeAt` L56-63 | Change guard to `if (index > 15) revert …;`. |
+| 12 | 🟩 Info | **[L-05] Admin-bit double-counted** in `assertHasRole` | `OperatorHelperLib` | `assertHasRole` L8-22 | Split `isAdmin` vs `hasRole` checks for clarity. |
 
 ---
 
 ## Code Excerpts
 
-### Excerpt 1: Re-entrancy / balance-inflation
+<details>
+<summary>1 – Re-entrancy / Balance-inflation</summary>
+
 ```solidity
 // vulnerable order
 _creditAccount(_getAccountStorage(), account, token, amount);
 token.safeTransferFrom(account, address(this), amount);
 ```
+</details>
 
-### Excerpt 2: Faulty “zero-cost-trade” check
+<details>
+<summary>2 – Faulty “zero-cost-trade” check</summary>
+
 ```solidity
 if (
-    baseTokenAmountReceived != quoteTokenAmountSent &&          // ❶
-    baseTokenAmountReceived & quoteTokenAmountSent == 0         // ❷  <-- issue
+    baseTokenAmountReceived != quoteTokenAmountSent &&
+    baseTokenAmountReceived & quoteTokenAmountSent == 0  // <-- issue
 ) {
     revert ZeroCostTrade();
 }
 ```
+</details>
 
-### Excerpt 13: Integer Overflow in Account Crediting
+<details>
+<summary>3 – Integer overflow when crediting</summary>
+
 ```solidity
-// In the _creditAccount function
-function _creditAccount( AccountManagerStorage storage self, address account, address token, uint256 amount ) internal {
-    unchecked {
-        self.accountTokenBalances[account][token] += amount; // VULNERABLE LINE
+function _creditAccount(...) internal {
+    unchecked {                                  // VULNERABLE
+        self.accountTokenBalances[account][token] += amount;
     }
-    emit AccountCredited(AccountEventNonce.inc(), account, token, amount);
-}
-
-// In the _creditAccountNoEvent function
-function _creditAccountNoEvent( AccountManagerStorage storage self, address account, address token, uint256 amount ) internal {
-    unchecked {
-        self.accountTokenBalances[account][token] += amount; // VULNERABLE LINE
-    }
+    emit AccountCredited(...);
 }
 ```
+</details>
 
-### Excerpt 3: Uses EIP-1153 `tstore/tload`
+<details>
+<summary>4 – EIP-1153 (`tstore/tload`) usage</summary>
+
 ```solidity
 assembly ("memory-safe") {
     exists := iszero(iszero(tload(slot)))
-    /* … more tstore/tload … */
+    /* … */
 }
 ```
+</details>
 
-### Excerpt 4: Potential infinite loop / DoS
+<details>
+<summary>5 – Infinite-loop risk in matcher</summary>
+
 ```solidity
 while (bestAskPrice <= incomingOrder.price && incomingOrder.amount > 0) {
     …
     if (currMatch.baseDelta == 0) break; // missing in original
 }
 ```
+</details>
 
-### Excerpt 5: Enum value not validated
+<details>
+<summary>6 – Enum not validated</summary>
+
 ```solidity
 fillArgs.side = ICLOB(market).getQuoteToken() == route.nextTokenIn
-    ? Side.BUY : Side.SELL;
-// later
-if (fillArgs.side == Side.BUY) { … } else { … }
+    ? Side.BUY
+    : Side.SELL;
 ```
+</details>
 
-### Excerpt 14: Missing Event Emissions for Maker Account Balance Updates During Settlement
+<details>
+<summary>7 – Missing events in settlement</summary>
+
 ```solidity
-// Credit both base and quote amounts if any (not just fills less fee, but also expiry and non-competitive refunds)
-if (credit.baseAmount > 0) {
-    _creditAccountNoEvent(  // @audit-issue: Missing event emission and nonce increment; should use _creditAccount
-        self,
-        credit.maker,
-        params.baseToken,
-        credit.baseAmount
-    );
-}
-
-if (credit.quoteAmount > 0) {
-    _creditAccountNoEvent(  // @audit-issue: Missing event emission and nonce increment; should use _creditAccount
-        self,
-        credit.maker,
-        params.quoteToken,
-        credit.quoteAmount
-    );
-}
+_creditAccountNoEvent(self, credit.maker, params.baseToken, credit.baseAmount);
 ```
+</details>
 
-### Excerpt 6: Uninitialised locals
+<details>
+<summary>8 – Un-initialised locals</summary>
+
 ```solidity
-SettleParams memory settleParams;          // uninitialised
-(settleParams.quoteToken, settleParams.baseToken) = …
+SettleParams memory settleParams; // uninitialised
 ```
+</details>
 
-### Excerpt 7: Contracts accept ETH but provide no withdraw
+<details>
+<summary>9 – ETH stuck in contracts</summary>
+
 ```solidity
-receive() external payable {}
+receive() external payable {}   // no withdrawal path
 ```
+</details>
 
-### Excerpt 8: No re-entrancy guard
+<details>
+<summary>10 – No `nonReentrant` guard</summary>
+
 ```solidity
-fee = feeData.claimFees(token);          // storage update
-if (fee > 0) token.safeTransfer(feeRecipient, fee);  // external
+fee = feeData.claimFees(token);      // state mutated
+token.safeTransfer(feeRecipient, fee); // external call
 ```
+</details>
 
-### Excerpt 9: Off-by-one in packed fee accessor
+<details>
+<summary>11 – Off-by-one in fee accessor</summary>
+
 ```solidity
 if (index >= 15) revert FeeTierIndexOutOfBounds();
 ```
+</details>
 
-### Excerpt 10: Admin bit double-counted
+<details>
+<summary>12 – Admin bit double-counted</summary>
+
 ```solidity
 if (rolesPacked & (1 << uint8(role)) == 0 && rolesPacked & 1 == 0)
     revert OperatorDoesNotHaveRole();
+```
+</details>
+
+---
+
+### Legend
+🟥 High | 🟧 Medium | 🟨 Low | 🟩 Info
